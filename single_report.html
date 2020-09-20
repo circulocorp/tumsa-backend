@@ -1,0 +1,55 @@
+<html>
+<head>
+    <style>
+table, td, th {
+  border: 1px solid black;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  height: 50px;
+  background-color:#DEDEDE;
+}
+</style>
+</head>
+<body>
+<span>
+<center>
+<h1>REGION MANZANILLO</h1>
+<h1>SISTEMA &Uacute;NICO DE TRANSPORTE DE MANZANILLO</h1>
+<h1>REPORTE DE CHECADAS</h1>
+</center>
+</br>
+    <center>
+        <h2 style="width:100%">{{ruta}}&nbsp;No. Econ&oacute;mico: {{vehicle}} &nbsp;&nbsp;&nbsp;&nbsp;
+            &nbsp;&nbsp;<span style="text-align: right">Fecha: {{date}}</span>
+        </h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>TERMINAL</th>
+                    {% for place in places %}
+                    <th><b>{{place}}</b></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(rounds) %}
+                    <tr>
+                        {% for trip in viaje[i] %}
+                        <td>
+                            {{trip.real}}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </center>
+</span>
+</body>
+</html>

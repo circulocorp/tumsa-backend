@@ -1,0 +1,22 @@
+version: 0.2
+
+env:
+  variables:
+      AWS_DEFAULT_REGION: "us-east-1"
+      AWS_ACCOUNT_ID: "042469170563"
+      VERSION: 0.6
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+  build:
+    commands:
+      - echo Build version $VERSION started on `date`
+      - docker build -t tumsa-backend:$VERSION .
+      - docker tag tumsa-backend:$VERSION $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/tumsa-backend:$VERSION
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/tumsa-backend:$VERSION

@@ -1,0 +1,24 @@
+{
+	"name": "tumsa-backend",
+	"version": "0.0.5",
+	"dev": {
+		"secrets": false,
+        "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
+		"dbhost": "192.168.15.10",
+		"dbuser": "postgres",
+		"dbpass": "admin1234",
+		"dbname": "tumsadev"
+	},
+	"stage": {
+		"secrets": false,
+		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
+		"dbhost": "circulocorp.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
+		"dbname": "tumsa"
+	},
+	"prod": {
+		"secrets": true,
+		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
+		"dbhost": "tumsa.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
+		"dbname": "tumsa"
+	}
+}

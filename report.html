@@ -1,0 +1,25 @@
+
+ <table border="1" align="center" width="85%">
+            <thead>
+                <tr>
+                    <th width="10%">TERMINAL</th>
+                    {% for place in places %}
+                    <th width="20%"><b>{{place}}</b></th>
+                    {% endfor %}
+                </tr>
+            </thead>
+     <tbody>
+                {% for i in range(rounds) %}
+                    <tr>
+                        {% for trip in viaje[i] %}
+                        <td>
+                            {{ trip.real_hour }}
+                        </td>
+                        {%- endfor -%}
+                    </tr>
+                {% endfor %}
+            </tbody>
+
+ </table>
+
+
