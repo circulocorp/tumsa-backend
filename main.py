@@ -81,6 +81,36 @@ def last_position():
     return json.dumps(res)
 
 
+@app.route('/api/createtrips', methods=['POST'])
+def create_trips():
+    m = MZone()
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
+    token = request.json["token"]
+    m.set_token(token)
+    camiones = request.json["camiones"].split(',')
+    route = tumsa.get_ruta(request.json["ruta"])
+    roles = tumsa.get_roles(request.json["ruta"])
+    day = request.json["day"]
+    j = 0
+    for camion in camiones:
+        vehicle = m.get_vehicles(extra="description eq '" + camion + "'")
+        if len(vehicle) > 0:
+            viaje = {}
+            calc = tumsa.calc_trip(route[0], day, roles[j])
+            viaje["vehicle"] = json.dumps(vehicle[0])
+            viaje["start_date"] = str(calc["start_date"])
+            viaje["end_date"] = str(calc["end_date"])
+            viaje["trip"] = json.dumps(calc["trip"])
+            viaje["rounds"] = roles[j]["rounds"]
+            viaje["start_point"] = calc["start_point"]
+            viaje["total_time"] = int(calc["total_time"])
+            viaje["end_point"] = calc["end_point"]
+            viaje["route"] = json.dumps(route[0])
+            tumsa.insert_viaje(viaje)
+            j = j + 1
+    return json.dumps({})
+
+
 @app.route('/api/allvehicles', methods=['POST'])
 def allvehicles():
     m = MZone()
@@ -143,122 +173,252 @@ def uploadTrips():
     #print(df)
 
 
-@app.route('/api/tripreport', methods=['POST'])
-def trip_report():
+@app.route('/api/dailyreport', methods=['POST'])
+def dailyreport():
+    pdf = HTML2PDF()
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
+    viajes = tumsa.get_todays_trips()
     m = MZone()
     token = request.json["token"]
-    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
-    viaje = tumsa.get_viaje(request.json["viaje"])[0]
-    start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
-                                   + timedelta(hours=5) - timedelta(minutes=30) , "%Y-%m-%dT%H:%M:%S")+"Z"
-    end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                 + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S")+"Z"
-
     m.set_token(token)
-    fences = m.get_geofences(extra="vehicle_Id eq "+viaje["vehicle"]["id"]+" and entryUtcTimestamp gt "+start_date+
-                                   " and entryUtcTimestamp lt "+end_date, orderby="entryUtcTimestamp asc")
-
-    df = pd.DataFrame(fences)
-
-    all = [[] for i in range(0, viaje["rounds"])]
-    head = []
-
-    for place in viaje["trip"]["trip"]:
-        if place["description"] not in head:
-            head.append(place["description"])
-        calc = {}
-        calc["place_Id"] = place["id"]
-        calc["description"] = place["description"]
-        calc["estimated"] = place["hour"]
-        calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
-        start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+    for viaje in viajes:
+        start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
                                        + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
-        end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+        end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
                                      + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
-        row = df[df["place_Id"] == calc["place_Id"]]
-        row2 = row[row["entryUtcTimestamp"] >= start_date]
-        fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
-        if len(fence) > 0:
-            real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
-            estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
-            calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
-            calc["real_hour"] = Utils.format_date(real, "%H:%M")
-            calc["delay"] = int((estimated - real).total_seconds() / 60)
-            if calc["delay"] < 0:
-                calc["delay"] = calc["delay"] + 1
-            calc["check"] = 1
-        else:
-            calc["real"] = ""
-            calc["real_hour"] = ""
-            calc["delay"] = 0
-            calc["check"] = 0
-        all[int(place["round"])-1].append(calc)
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
+                     start_date=viaje["start_date"])
+        pdf.add_page(orientation='L')
+        epw = pdf.w - 2 * pdf.l_margin
+        fences = m.get_geofences(extra="vehicle_Id eq " + viaje["vehicle"]["id"]+" and entryUtcTimestamp gt "+
+                                       start_date +" and entryUtcTimestamp lt " +end_date, orderby="entryUtcTimestamp asc")
+        if len(fences) > 0:
+            df = pd.DataFrame(fences)
 
-    pdf = HTML2PDF()
-    pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"])
-    pdf.add_page(orientation='L')
-    epw = pdf.w - 2 * pdf.l_margin
-    head.append("ADELANTO")
-    head.append("RETRASO")
-    col_width = epw / len(head)
-    pdf.set_font('Arial', '', 10)
+            all = [[] for i in range(0, viaje["rounds"])]
+            head = []
 
-    th = pdf.font_size
-    pdf.set_fill_color(234, 230, 230)
-    for data in head:
-        pdf.cell(col_width, 2 * th, data, border=1, fill=True, align='C')
-    pdf.ln(2 * th)
+            for place in viaje["trip"]:
+                if place["description"] not in head:
+                    head.append(place["description"])
+                calc = {}
+                calc["place_Id"] = place["id"]
+                calc["description"] = place["description"]
+                calc["estimated"] = place["hour"]
+                calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
+                                                           "%H:%M")
+                start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                               + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                             + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
-    th = pdf.font_size
-    total_adelanto = 0
-    total_retraso = 0
-    for vuelta in all:
-        atraso = 0
-        adelanto = 0
-        for point in vuelta:
-            if point["delay"] < 0:
-                atraso = atraso + int(point["delay"])
-            elif point["delay"] > 0:
+                row = df[df["place_Id"] == calc["place_Id"]]
+                row2 = row[row["entryUtcTimestamp"] >= start_date]
+                fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+                if len(fence) > 0:
+                    real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
+                    estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
+                    calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
+                    calc["real_hour"] = Utils.format_date(real, "%H:%M")
+                    calc["delay"] = int((estimated - real).total_seconds() / 60)
+                    if calc["delay"] < 0:
+                        calc["delay"] = calc["delay"] + 1
+                    calc["check"] = 1
+                else:
+                    calc["real"] = ""
+                    calc["real_hour"] = ""
+                    calc["delay"] = 0
+                    calc["check"] = 0
+                all[int(place["round"]) - 1].append(calc)
+
+            head.append("ADELANTO")
+            head.append("RETRASO")
+            col_width = epw / len(head)
+            pdf.set_font('Arial', '', 10)
+
+            th = pdf.font_size
+            pdf.set_fill_color(234, 230, 230)
+            for data in head:
+                pdf.cell(col_width, 2 * th, data, border=1, fill=True, align='C')
+            pdf.ln(2 * th)
+
+            th = pdf.font_size
+            total_adelanto = 0
+            total_retraso = 0
+            for vuelta in all:
+                atraso = 0
+                adelanto = 0
+                for point in vuelta:
+                    if point["delay"] < 0:
+                        atraso = atraso + int(point["delay"])
+                    elif point["delay"] > 0:
+                        pdf.set_text_color(0, 0, 255)
+                        adelanto = adelanto + int(point["delay"])
+                    else:
+                        pdf.set_text_color(0, 0, 0)
+
+                    if point["check"] == 1:
+                        pdf.set_text_color(0, 0, 0)
+                        pdf.cell(col_width / 3, 2 * th, point["estimated_hour"], border=1, align='C')
+                        if point["delay"] < 0:
+                            pdf.set_text_color(255, 0, 0)
+                        elif point["delay"] > 0:
+                            pdf.set_text_color(0, 0, 255)
+                        pdf.cell(col_width / 1.5, 2 * th, " " + point["real_hour"] + "(" + str(point["delay"]) + ")",
+                                 border=1, align='C')
+                    else:
+                        pdf.cell(col_width / 2, 2 * th, point["estimated_hour"], border=1, align='C')
+                        pdf.cell(col_width / 2, 2 * th, "S/CHK", border=1, align='C')
+                total_adelanto = total_adelanto + adelanto
+                total_retraso = total_retraso + atraso
                 pdf.set_text_color(0, 0, 255)
-                adelanto = adelanto + int(point["delay"])
-            else:
-                pdf.set_text_color(0, 0, 0)
+                pdf.cell(col_width, 2 * th, str(adelanto), border=1, align='C')
+                pdf.set_text_color(255, 0, 0)
+                pdf.cell(col_width, 2 * th, str(atraso), border=1, align='C')
+                pdf.ln(2 * th)
 
-            if point["check"] == 1:
-                pdf.set_text_color(0, 0, 0)
-                pdf.cell(col_width/3, 2*th, point["estimated_hour"], border=1, align='C')
-                if point["delay"] < 0:
-                    pdf.set_text_color(255, 0, 0)
-                elif point["delay"] > 0:
-                    pdf.set_text_color(0, 0, 255)
-                pdf.cell(col_width/1.5, 2*th, " "+point["real_hour"] + "(" + str(point["delay"]) + ")", border=1, align='C')
+            pdf.set_text_color(0, 0, 0)
+            for i in head[:-2]:
+                pdf.cell(col_width, 2 * th, " - ", border=1, fill=True, align='C')
+            pdf.set_text_color(0, 0, 255)
+            pdf.cell(col_width, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
+            pdf.set_text_color(255, 0, 0)
+            pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
+
+
+    pdf.output('daily.pdf')
+    pdf2 = open("daily.pdf")
+    response = Response(pdf2.read(), mimetype="application/pdf", headers={"Content-disposition": "attachment; filename=daily.pdf"})
+    pdf2.close()
+    os.remove("daily.pdf")
+    return response
+
+
+@app.route('/api/tripreport', methods=['POST'])
+def trip_report():
+    pdf = HTML2PDF()
+    try:
+        m = MZone()
+        token = request.json["token"]
+        tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
+        viaje = tumsa.get_viaje(request.json["viaje"])[0]
+        start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
+                                       + timedelta(hours=5) - timedelta(minutes=30) , "%Y-%m-%dT%H:%M:%S")+"Z"
+        end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
+                                     + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S")+"Z"
+
+        m.set_token(token)
+        pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"])
+        pdf.add_page(orientation='L')
+        epw = pdf.w - 2 * pdf.l_margin
+
+        fences = m.get_geofences(extra="vehicle_Id eq "+viaje["vehicle"]["id"]+" and entryUtcTimestamp gt "+start_date+
+                                       " and entryUtcTimestamp lt "+end_date, orderby="entryUtcTimestamp asc")
+
+        df = pd.DataFrame(fences)
+
+        all = [[] for i in range(0, viaje["rounds"])]
+        head = []
+
+        for place in viaje["trip"]["trip"]:
+            if place["description"] not in head:
+                head.append(place["description"])
+            calc = {}
+            calc["place_Id"] = place["id"]
+            calc["description"] = place["description"]
+            calc["estimated"] = place["hour"]
+            calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
+            start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                           + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+            end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                         + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+
+            row = df[df["place_Id"] == calc["place_Id"]]
+            row2 = row[row["entryUtcTimestamp"] >= start_date]
+            fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+            if len(fence) > 0:
+                real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
+                estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
+                calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
+                calc["real_hour"] = Utils.format_date(real, "%H:%M")
+                calc["delay"] = int((estimated - real).total_seconds() / 60)
+                if calc["delay"] < 0:
+                    calc["delay"] = calc["delay"] + 1
+                calc["check"] = 1
             else:
-                pdf.cell(col_width/2, 2 * th, point["estimated_hour"], border=1, align='C')
-                pdf.cell(col_width/2, 2 * th, "S/CHK", border=1, align='C')
-        total_adelanto = total_adelanto + adelanto
-        total_retraso = total_retraso + atraso
-        pdf.set_text_color(0, 0, 255)
-        pdf.cell(col_width, 2 * th, str(adelanto), border=1, align='C')
-        pdf.set_text_color(255, 0, 0)
-        pdf.cell(col_width, 2 * th, str(atraso), border=1, align='C')
+                calc["real"] = ""
+                calc["real_hour"] = ""
+                calc["delay"] = 0
+                calc["check"] = 0
+            all[int(place["round"])-1].append(calc)
+
+
+
+        head.append("ADELANTO")
+        head.append("RETRASO")
+        col_width = epw / len(head)
+        pdf.set_font('Arial', '', 10)
+
+        th = pdf.font_size
+        pdf.set_fill_color(234, 230, 230)
+        for data in head:
+            pdf.cell(col_width, 2 * th, data, border=1, fill=True, align='C')
         pdf.ln(2 * th)
 
-    pdf.set_text_color(0, 0, 0)
-    for i in head[:-2]:
-        pdf.cell(col_width, 2 * th, " - ", border=1, fill=True, align='C')
-    pdf.set_text_color(0, 0, 255)
-    pdf.cell(col_width, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
-    pdf.set_text_color(255, 0, 0)
-    pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
+        th = pdf.font_size
+        total_adelanto = 0
+        total_retraso = 0
+        for vuelta in all:
+            atraso = 0
+            adelanto = 0
+            for point in vuelta:
+                if point["delay"] < 0:
+                    atraso = atraso + int(point["delay"])
+                elif point["delay"] > 0:
+                    pdf.set_text_color(0, 0, 255)
+                    adelanto = adelanto + int(point["delay"])
+                else:
+                    pdf.set_text_color(0, 0, 0)
 
-    pdf.output('out.pdf')
+                if point["check"] == 1:
+                    pdf.set_text_color(0, 0, 0)
+                    pdf.cell(col_width/3, 2*th, point["estimated_hour"], border=1, align='C')
+                    if point["delay"] < 0:
+                        pdf.set_text_color(255, 0, 0)
+                    elif point["delay"] > 0:
+                        pdf.set_text_color(0, 0, 255)
+                    pdf.cell(col_width/1.5, 2*th, " "+point["real_hour"] + "(" + str(point["delay"]) + ")", border=1, align='C')
+                else:
+                    pdf.cell(col_width/2, 2 * th, point["estimated_hour"], border=1, align='C')
+                    pdf.cell(col_width/2, 2 * th, "S/CHK", border=1, align='C')
+            total_adelanto = total_adelanto + adelanto
+            total_retraso = total_retraso + atraso
+            pdf.set_text_color(0, 0, 255)
+            pdf.cell(col_width, 2 * th, str(adelanto), border=1, align='C')
+            pdf.set_text_color(255, 0, 0)
+            pdf.cell(col_width, 2 * th, str(atraso), border=1, align='C')
+            pdf.ln(2 * th)
 
-    pdf2 = open("out.pdf")
-    response = Response(pdf2.read(), mimetype="application/pdf", headers={"Content-disposition": "attachment; filename=report.pdf"})
-    pdf2.close()
-    os.remove("out.pdf")  # remove the locally created pdf file.
-    return response
+        pdf.set_text_color(0, 0, 0)
+        for i in head[:-2]:
+            pdf.cell(col_width, 2 * th, " - ", border=1, fill=True, align='C')
+        pdf.set_text_color(0, 0, 255)
+        pdf.cell(col_width, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
+        pdf.set_text_color(255, 0, 0)
+        pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
+
+        pdf.output('out.pdf')
+    except:
+        pdf.output('out.pdf')
+    finally:
+        pdf2 = open("out.pdf")
+        response = Response(pdf2.read(), mimetype="application/pdf",
+                            headers={"Content-disposition": "attachment; filename=report.pdf"})
+        pdf2.close()
+        os.remove("out.pdf")
+        return response
 
 
 def convert_template(template, **kwargs):
