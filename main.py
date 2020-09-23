@@ -222,9 +222,9 @@ def dailyreport():
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                            "%H:%M")
                 start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                               + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                               - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
                 end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                             + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                             + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
                 row = df[df["place_Id"] == calc["place_Id"]]
                 row2 = row[row["entryUtcTimestamp"] >= start_date]
