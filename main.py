@@ -206,6 +206,7 @@ def dailyreport():
                                        start_date +" and entryUtcTimestamp lt " +end_date, orderby="entryUtcTimestamp asc")
         if len(fences) > 0:
             df = pd.DataFrame(fences)
+            print(fences)
 
             all = [[] for i in range(0, viaje["rounds"])]
             head = []
