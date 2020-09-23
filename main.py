@@ -44,7 +44,7 @@ class HTML2PDF(FPDF, HTMLMixin):
         self.cell(300, 10, 'REGION MANZANILLO', 0, 0, 'C')
         # Line break
         self.ln(10)
-        self.cell(300, 10, 'SISTEMA UNICO DE TRANSPORTE DE MANZANILLO', 0, 0, 'C')
+        self.cell(300, 10, 'SISTEMA UNICO TUCA', 0, 0, 'C')
         self.ln(10)
         self.cell(300, 10, 'REPORTE DE CHECADAS', 0, 0, 'C')
         self.ln(20)
@@ -100,7 +100,7 @@ def create_trips():
             viaje["vehicle"] = json.dumps(vehicle[0])
             viaje["start_date"] = str(calc["start_date"])
             viaje["end_date"] = str(calc["end_date"])
-            viaje["trip"] = json.dumps(calc["trip"])
+            viaje["trip"] = json.dumps(str(calc["trip"]))
             viaje["rounds"] = roles[j]["rounds"]
             viaje["start_point"] = calc["start_point"]
             viaje["total_time"] = int(calc["total_time"])
@@ -200,9 +200,10 @@ def dailyreport():
             all = [[] for i in range(0, viaje["rounds"])]
             head = []
 
+            for he in viaje["route"]["points"]["places"]:
+                head.append(he["description"])
+
             for place in viaje["trip"]:
-                if place["description"] not in head:
-                    head.append(place["description"])
                 calc = {}
                 calc["place_Id"] = place["id"]
                 calc["description"] = place["description"]
@@ -236,7 +237,7 @@ def dailyreport():
             head.append("ADELANTO")
             head.append("RETRASO")
             col_width = epw / len(head)
-            pdf.set_font('Arial', '', 10)
+            pdf.set_font('Arial', '', 17-(len(head)))
 
             th = pdf.font_size
             pdf.set_fill_color(234, 230, 230)
@@ -250,12 +251,16 @@ def dailyreport():
             for vuelta in all:
                 atraso = 0
                 adelanto = 0
+                pos = -1
                 for point in vuelta:
+                    pos += 1
                     if point["delay"] < 0:
-                        atraso = atraso + int(point["delay"])
+                        if pos != len(vuelta) - 1:
+                            atraso = atraso + int(point["delay"])
                     elif point["delay"] > 0:
                         pdf.set_text_color(0, 0, 255)
-                        adelanto = adelanto + int(point["delay"])
+                        if pos != len(vuelta) - 1:
+                            adelanto = adelanto + int(point["delay"])
                     else:
                         pdf.set_text_color(0, 0, 0)
 
@@ -322,9 +327,10 @@ def trip_report():
         all = [[] for i in range(0, viaje["rounds"])]
         head = []
 
+        for he in viaje["route"]["points"]["places"]:
+            head.append(he["description"])
+
         for place in viaje["trip"]["trip"]:
-            if place["description"] not in head:
-                head.append(place["description"])
             calc = {}
             calc["place_Id"] = place["id"]
             calc["description"] = place["description"]
@@ -356,10 +362,10 @@ def trip_report():
 
 
 
-        head.append("ADELANTO")
-        head.append("RETRASO")
+        head.append("ADNTO")
+        head.append("RETRSO")
         col_width = epw / len(head)
-        pdf.set_font('Arial', '', 10)
+        pdf.set_font('Arial', '', 17-(len(head)))
 
         th = pdf.font_size
         pdf.set_fill_color(234, 230, 230)
@@ -373,12 +379,16 @@ def trip_report():
         for vuelta in all:
             atraso = 0
             adelanto = 0
+            pos = -1
             for point in vuelta:
+                pos += 1
                 if point["delay"] < 0:
-                    atraso = atraso + int(point["delay"])
+                    if pos != len(vuelta) - 1:
+                        atraso = atraso + int(point["delay"])
                 elif point["delay"] > 0:
                     pdf.set_text_color(0, 0, 255)
-                    adelanto = adelanto + int(point["delay"])
+                    if pos != len(vuelta) - 1:
+                        adelanto = adelanto + int(point["delay"])
                 else:
                     pdf.set_text_color(0, 0, 0)
 
