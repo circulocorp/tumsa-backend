@@ -103,32 +103,36 @@ class Tumsa(object):
 
     def calc_trip(self, route, day, role):
         calc = {}
-        calc["start_date"] = Utils.datetime_zone(Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S"),
-                                                 "America/Mexico_City")
+        calc["start_date"] = Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S")
         calc["trip"] = []
         calc["total_time"] = 0
         time = 0
         started = 0
-        for i in range(int(role["rounds"])) :
+        for i in range(int(role["rounds"])):
             for place in route["points"]["places"]:
                 place2 = {}
                 place2["id"] = place["id"]
                 place2["description"] = place["description"]
                 start = calc["start_date"]
                 if "lastComment" in place and len(json.loads(place["lastComment"])) > 0:
+                    found = 0
                     for cond in json.loads(place["lastComment"]):
                         dt2 = Utils.format_date(start + timedelta(minutes=(time + int(place["time"]))), "%H:%M")
                         if cond["key"] == route["name"] and (i+1) == int(cond["vuelta"]) and dt2 == cond["time"]:
+                            place2["condition"] = cond
                             oldtime = start + timedelta(minutes=(time + int(place["time"])))
                             ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["ntime"]+":00", "%Y-%m-%d %H:%M:%S")
                             time = time + int((ntime-oldtime).seconds / 60) + int(place["time"])
+                            found = 1
                             break
-                        else:
-                            time = time + int(place["time"])
+                    if found == 0:
+                        time = time + int(place["time"])
                 else:
                     time = time + int(place["time"])
-                place2["hour"] = start + timedelta(minutes=time)
+                place2["time"] = time
+                place2["hour"] = Utils.format_date(start + timedelta(minutes=time), "%Y-%m-%d %H:%M:%S")
                 place2["round"] = i + 1
+                print(place2)
                 calc["trip"].append(place2)
             time = time + int(route["time_rounds"])
 
@@ -136,7 +140,6 @@ class Tumsa(object):
         calc["end_date"] = calc["start_date"] + timedelta(minutes=time)
         calc["start_point"] = route["points"]["places"][0]["id"]
         calc["end_point"] = route["points"]["places"][-1]["id"]
-        print(calc)
         return calc
 
     def get_ruta(self, id):
