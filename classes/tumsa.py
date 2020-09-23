@@ -103,7 +103,8 @@ class Tumsa(object):
 
     def calc_trip(self, route, day, role):
         calc = {}
-        calc["start_date"] = Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S")
+        calc["start_date"] = Utils.datetime_zone(Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S"),
+                                                 "America/Mexico_City")
         calc["trip"] = []
         calc["total_time"] = 0
         time = 0
@@ -135,6 +136,7 @@ class Tumsa(object):
         calc["end_date"] = calc["start_date"] + timedelta(minutes=time)
         calc["start_point"] = route["points"]["places"][0]["id"]
         calc["end_point"] = route["points"]["places"][-1]["id"]
+        print(calc)
         return calc
 
     def get_ruta(self, id):
