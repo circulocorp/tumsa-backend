@@ -103,8 +103,6 @@ class Tumsa(object):
 
     def calc_trip(self, route, day, role):
         calc = {}
-        print(day)
-        print(role["hour"])
         calc["start_date"] = Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S")
         calc["trip"] = []
         calc["total_time"] = 0

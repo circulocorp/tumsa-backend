@@ -173,6 +173,16 @@ def uploadTrips():
     #print(df)
 
 
+@app.route('/api/calc_trip', methods=['POST'])
+def calc_trip():
+    trip = request.json["viaje"]
+    role = json.loads(request.json["role"])
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
+    start_date = Utils.format_date(Utils.string_to_date(str(trip["start_date"]).split('.')[0], "%Y-%m-%dT%H:%M:%S"),"%Y-%m-%d")
+    calcs = tumsa.calc_trip(trip["route"], start_date, role)
+    return calcs
+
+
 @app.route('/api/dailyreport', methods=['POST'])
 def dailyreport():
     pdf = HTML2PDF()
