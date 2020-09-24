@@ -330,6 +330,9 @@ def trip_report():
         pdf.add_page(orientation='L')
         epw = pdf.w - 2 * pdf.l_margin
 
+        print("vehicle_Id eq "+viaje["vehicle"]["id"]+" and entryUtcTimestamp gt "+
+              start_date+" and entryUtcTimestamp lt "+end_date)
+
         fences = m.get_geofences(extra="vehicle_Id eq "+viaje["vehicle"]["id"]+" and entryUtcTimestamp gt "+start_date+
                                        " and entryUtcTimestamp lt "+end_date, orderby="entryUtcTimestamp asc")
 
