@@ -323,7 +323,7 @@ def trip_report():
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
                                        - timedelta(hours=5) - timedelta(minutes=40) , "%Y-%m-%dT%H:%M:%S")+"Z"
         end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                     - timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S")+"Z"
+                                     + timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S")+"Z"
 
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"])
