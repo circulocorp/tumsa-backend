@@ -321,9 +321,9 @@ def trip_report():
         tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
         viaje = tumsa.get_viaje(request.json["viaje"])[0]
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
-                                       - timedelta(hours=5) - timedelta(minutes=30) , "%Y-%m-%dT%H:%M:%S")+"Z"
+                                       + timedelta(hours=5) - timedelta(minutes=30) , "%Y-%m-%dT%H:%M:%S")+"Z"
         end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                     - timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S")+"Z"
+                                     + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S")+"Z"
 
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"])
