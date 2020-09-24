@@ -44,7 +44,7 @@ class HTML2PDF(FPDF, HTMLMixin):
         self.cell(300, 10, 'REGION MANZANILLO', 0, 0, 'C')
         # Line break
         self.ln(10)
-        self.cell(300, 10, 'SISTEMA UNICO TUCA', 0, 0, 'C')
+        self.cell(300, 10, 'SISTEMA TUCA', 0, 0, 'C')
         self.ln(10)
         self.cell(300, 10, 'REPORTE DE CHECADAS', 0, 0, 'C')
         self.ln(20)
