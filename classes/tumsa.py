@@ -104,6 +104,8 @@ class Tumsa(object):
     def calc_trip(self, route, day, role):
         calc = {}
         calc["start_date"] = Utils.string_to_date(day+" "+role["hour"], "%Y-%m-%d %H:%M:%S")
+        calc["start_point"] = role["start_point"]
+        calc["end_point"] = role["end_point"]
         calc["trip"] = []
         calc["total_time"] = 0
         time = 0
@@ -114,25 +116,31 @@ class Tumsa(object):
                 place2["id"] = place["id"]
                 place2["description"] = place["description"]
                 start = calc["start_date"]
-                if "lastComment" in place and len(json.loads(place["lastComment"])) > 0:
-                    found = 0
-                    for cond in json.loads(place["lastComment"]):
-                        dt2 = Utils.format_date(start + timedelta(minutes=(time + int(place["time"]))), "%H:%M")
-                        if cond["key"] == route["name"] and (i+1) == int(cond["vuelta"]) and dt2 == cond["time"]:
-                            place2["condition"] = cond
-                            oldtime = start + timedelta(minutes=(time + int(place["time"])))
-                            ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["ntime"]+":00", "%Y-%m-%d %H:%M:%S")
-                            time = time + int((ntime-oldtime).seconds / 60) + int(place["time"])
-                            found = 1
-                            break
-                    if found == 0:
-                        time = time + int(place["time"])
+                if calc["start_point"] != place2["id"] and started == 0:
+                    place2["time"] = 0
+                    place2["hour"] = ""
                 else:
-                    time = time + int(place["time"])
-                place2["time"] = time
-                place2["hour"] = Utils.format_date(start + timedelta(minutes=time), "%Y-%m-%d %H:%M:%S")
+                    if "lastComment" in place and len(json.loads(place["lastComment"])) > 0:
+                        found = 0
+                        for cond in json.loads(place["lastComment"]):
+                            dt2 = Utils.format_date(start + timedelta(minutes=(time + int(place["time"]))), "%H:%M")
+                            if cond["key"] == route["name"] and (i+1) == int(cond["vuelta"]) and dt2 == cond["time"]:
+                                place2["condition"] = cond
+                                oldtime = start + timedelta(minutes=(time + int(place["time"])))
+                                ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["ntime"]+":00", "%Y-%m-%d %H:%M:%S")
+                                time = time + int((ntime-oldtime).seconds / 60) + int(place["time"])
+                                found = 1
+                                break
+                        if found == 0:
+                            time = time + int(place["time"])
+                    else:
+                        time = time + int(place["time"])
+                    if started == 0:
+                        time = 0
+                    started = 1
+                    place2["time"] = time
+                    place2["hour"] = Utils.format_date(start + timedelta(minutes=time), "%Y-%m-%d %H:%M:%S")
                 place2["round"] = i + 1
-                print(place2)
                 calc["trip"].append(place2)
             time = time + int(route["time_rounds"])
 
