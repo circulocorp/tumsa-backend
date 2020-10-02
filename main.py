@@ -565,7 +565,9 @@ def trip_report():
         pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
 
         pdf.output('out.pdf')
-    except:
+    except Exception as e:
+        print("Problem here creating the pdf")
+        print(e)
         pdf.output('out.pdf')
     finally:
         pdf2 = open("out.pdf")
