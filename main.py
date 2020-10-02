@@ -106,6 +106,8 @@ def create_trips():
             viaje["total_time"] = int(calc["total_time"])
             viaje["end_point"] = calc["end_point"]
             viaje["route"] = json.dumps(route[0])
+            viaje["comments"] = roles[j]["comments"]
+            viaje["delay"] = roles[j]["delay"]
             tumsa.insert_viaje(viaje)
             j = j + 1
     return json.dumps({})

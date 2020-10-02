@@ -14,10 +14,11 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432", database=self.dbname)
             sql = "INSERT INTO departures(nid,trip,vehicle,created,start_date,end_date,rounds,start_point,end_point," \
-                  "total_time,route) values(uuid_generate_v4(),%s,%s,NOW(),%s,%s,%s,%s,%s,%s,%s)"
+                  "total_time,route,comments,delay) values(uuid_generate_v4(),%s,%s,NOW(),%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             cursor = conn.cursor()
             cursor.execute(sql, (viaje["trip"], viaje["vehicle"], viaje["start_date"], viaje["end_date"], viaje["rounds"],
-                                 viaje["start_point"], viaje["end_point"], viaje["total_time"], viaje["route"]))
+                                 viaje["start_point"], viaje["end_point"], viaje["total_time"], viaje["route"],
+                                 viaje["comments"], viaje["delay"]))
             conn.commit()
             return True
         except (Exception, pg.Error) as error:
@@ -44,6 +45,8 @@ class Tumsa(object):
                 viaje["created"] = str(row[6])
                 viaje["start_date"] = str(row[7])
                 viaje["end_date"] = str(row[8])
+                viaje["comments"] = str(row[9])
+                viaje["delay"] = int(row[10])
                 viajes.append(viaje)
         except (Exception, pg.Error) as error:
             print(error)
@@ -73,6 +76,8 @@ class Tumsa(object):
                 viaje["created"] = str(row[6])
                 viaje["start_date"] = str(row[7])
                 viaje["end_date"] = str(row[8])
+                viaje["comments"] = str(row[9])
+                viaje["delay"] = int(row[10])
                 viajes.append(viaje)
         except (Exception, pg.Error) as error:
             print(error)
@@ -102,6 +107,8 @@ class Tumsa(object):
                 viaje["created"] = str(row[6])
                 viaje["start_date"] = str(row[7])
                 viaje["end_date"] = str(row[8])
+                viaje["comments"] = str(row[9])
+                viaje["delay"] = int(row[10])
                 viajes.append(viaje)
         except (Exception, pg.Error) as error:
             print(error)
@@ -123,6 +130,10 @@ class Tumsa(object):
                 role["hour"] = row[1]
                 role["rounds"] = int(row[2])
                 role["route"] = row[3]
+                role["start_point"] = row[4]
+                role["end_point"] = row[5]
+                role["comments"] = str(row[6])
+                role["delay"] = int(row[7])
                 roles.append(role)
         except (Exception, pg.Error) as error:
             print(error)
