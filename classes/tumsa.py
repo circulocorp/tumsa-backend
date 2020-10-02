@@ -79,6 +79,34 @@ class Tumsa(object):
         finally:
             return viajes
 
+    def get_day_trips(self, day):
+        viajes = []
+        try:
+            #base = Utils.format_date(day, "%Y-%m-%d")
+            start = day + " 00:00:00"
+            end = day + " 23:59:59"
+            conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
+                              database=self.dbname)
+            sql = "select * from departures where start_date>=%s and end_date<=%s order by start_date asc"
+            cursor = conn.cursor()
+            cursor.execute(sql, (start, end))
+            data = cursor.fetchall()
+            for row in data:
+                viaje = {}
+                viaje["nid"] = row[0]
+                viaje["trip"] = row[1]
+                viaje["route"] = row[2]
+                viaje["rounds"] = int(row[3])
+                viaje["total_time"] = int(row[4])
+                viaje["vehicle"] = row[5]
+                viaje["created"] = str(row[6])
+                viaje["start_date"] = str(row[7])
+                viaje["end_date"] = str(row[8])
+                viajes.append(viaje)
+        except (Exception, pg.Error) as error:
+            print(error)
+        finally:
+            return viajes
 
     def get_roles(self, ruta):
         roles = []
