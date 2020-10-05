@@ -4,9 +4,12 @@ import json
 
 def main():
     tumsa = Tumsa(dbhost="127.0.0.1", dbuser="postgres", dbpass="admin1234", dbname="tumsadev")
-    viaje = tumsa.get_viaje("0b1c20dd-0108-410c-9040-cd8580f07c65")[0]
+    viaje = tumsa.get_viaje("0eb9e06e-d012-4168-b63b-0208937f24da")[0]
     for place in viaje["trip"]["trip"]:
-        print(place)
+        if place["hour"] == "":
+            print("Empty")
+        else:
+            print(place["hour"])
 
 
 

@@ -32,10 +32,11 @@ else:
 
 class HTML2PDF(FPDF, HTMLMixin):
 
-    def set_data(self, route=None, vehicle=None, start_date=None):
+    def set_data(self, route=None, vehicle=None, start_date=None, tolerancia=1):
         self._route = route
         self._vehicle = vehicle
         self._start_date = start_date
+        self._tolerancia = str(tolerancia)+" min."
 
     def header(self):
         self.set_font('Arial', 'B', 15)
@@ -49,8 +50,9 @@ class HTML2PDF(FPDF, HTMLMixin):
         self.cell(300, 10, 'REPORTE DE CHECADAS', 0, 0, 'C')
         self.ln(20)
         self.cell(50, 10, self._route, 0, 0, 'C')
-        self.cell(75, 10, "No. Economico: "+self._vehicle, 0, 0, 'C')
-        self.cell(150, 10, "Fecha: "+Utils.format_date(Utils.string_to_date(
+        self.cell(155, 10, "No. Economico: "+self._vehicle, 0, 0, 'C')
+        #self.cell(50, 10, "Tolerancia: " +self._tolerancia, 0, 0, 'C')
+        self.cell(100, 10, "Fecha: "+Utils.format_date(Utils.string_to_date(
             self._start_date, "%Y-%m-%d %H:%M:%S"), "%d/%m/%Y"), 0, 0, 'C')
         self.ln(20)
 
@@ -306,6 +308,7 @@ def dailyreport():
             pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
 
 
+
     pdf.output('daily.pdf')
     pdf2 = open("daily.pdf")
     response = Response(pdf2.read(), mimetype="application/pdf", headers={"Content-disposition": "attachment; filename=daily.pdf"})
@@ -458,7 +461,8 @@ def trip_report():
                                      + timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S")+"Z"
 
         m.set_token(token)
-        pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"])
+        pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"],
+                     tolerancia=delay)
         pdf.add_page(orientation='L')
         epw = pdf.w - 2 * pdf.l_margin
 
@@ -480,45 +484,55 @@ def trip_report():
             calc["place_Id"] = place["id"]
             calc["description"] = place["description"]
             calc["estimated"] = place["hour"]
-            calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
-            start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                           + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
-            end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                         + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+            calc["real"] = ""
+            calc["real_hour"] = ""
+            calc["delay"] = 0
+            calc["check"] = 0
+            calc["estimated_hour"] = ""
+            if place["hour"] != "":
+                calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
+                start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                               + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                             + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
-            row = df[df["place_Id"] == calc["place_Id"]]
-            row2 = row[row["entryUtcTimestamp"] >= start_date]
-            fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
-            if len(fence) > 0:
-                real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
-                estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
-                calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
-                calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                calc["delay"] = int((estimated - real).total_seconds() / 60)
-                if calc["delay"] < 0:
-                    calc["delay"] = calc["delay"] + delay
-                calc["check"] = 1
-            else:
-                calc["real"] = ""
-                calc["real_hour"] = ""
-                calc["delay"] = 0
-                calc["check"] = 0
+                row = df[df["place_Id"] == calc["place_Id"]]
+                row2 = row[row["entryUtcTimestamp"] >= start_date]
+                fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+                if len(fence) > 0:
+                    real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
+                    estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
+                    calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
+                    calc["real_hour"] = Utils.format_date(real, "%H:%M")
+                    calc["delay"] = int((estimated - real).total_seconds() / 60)
+                    '''
+                    if calc["delay"] < 0:
+                        calc["delay"] = calc["delay"] + delay
+                    elif calc["delay"] > 0:
+                        calc["delay"] = calc["delay"] - delay
+                    '''
+
+                    calc["check"] = 1
             all[int(place["round"])-1].append(calc)
 
 
-
-        head.append("ADNTO")
-        head.append("RETRSO")
-        col_width = epw / len(head)
-        pdf.set_font('Arial', '', 17-(len(head)))
+        col_width = epw / (len(head) + 1)
+        pdf.set_font('Arial', '', 7)
 
         th = pdf.font_size
         pdf.set_fill_color(234, 230, 230)
         for data in head:
             pdf.cell(col_width, 2 * th, data, border=1, fill=True, align='C')
-        pdf.ln(2 * th)
 
+        head.append("ADNTO")
+        head.append("RTRSO")
+        col_width_f = 12
+        pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
+        pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
+
+        pdf.ln(2 * th)
         th = pdf.font_size
+
         total_adelanto = 0
         total_retraso = 0
         for vuelta in all:
@@ -527,10 +541,10 @@ def trip_report():
             pos = -1
             for point in vuelta:
                 pos += 1
-                if point["delay"] < 0:
+                if point["delay"] < (-delay):
                     if pos != len(vuelta) - 1:
                         atraso = atraso + int(point["delay"])
-                elif point["delay"] > 0:
+                elif point["delay"] > delay:
                     pdf.set_text_color(0, 0, 255)
                     if pos != len(vuelta) - 1:
                         adelanto = adelanto + int(point["delay"])
@@ -539,31 +553,38 @@ def trip_report():
 
                 if point["check"] == 1:
                     pdf.set_text_color(0, 0, 0)
-                    pdf.cell(col_width/3, 2*th, point["estimated_hour"], border=1, align='C')
-                    if point["delay"] < 0:
+                    pdf.cell(col_width/2, 2*th, point["estimated_hour"], border=1, align='C')
+                    if point["delay"] < (-delay):
                         pdf.set_text_color(255, 0, 0)
-                    elif point["delay"] > 0:
+                    elif point["delay"] > delay:
                         pdf.set_text_color(0, 0, 255)
-                    pdf.cell(col_width/1.5, 2*th, " "+point["real_hour"] + "(" + str(point["delay"]) + ")", border=1, align='C')
+                    pdf.cell(col_width/2, 2*th, " "+point["real_hour"] + "(" + str(point["delay"]) + ")", border=1, align='C')
                 else:
                     pdf.cell(col_width/2, 2 * th, point["estimated_hour"], border=1, align='C')
                     pdf.cell(col_width/2, 2 * th, "S/CHK", border=1, align='C')
             total_adelanto = total_adelanto + adelanto
             total_retraso = total_retraso + atraso
             pdf.set_text_color(0, 0, 255)
-            pdf.cell(col_width, 2 * th, str(adelanto), border=1, align='C')
+            pdf.cell(col_width_f, 2 * th, str(adelanto), border=1, align='C')
             pdf.set_text_color(255, 0, 0)
-            pdf.cell(col_width, 2 * th, str(atraso), border=1, align='C')
+            pdf.cell(col_width_f, 2 * th, str(atraso), border=1, align='C')
             pdf.ln(2 * th)
 
         pdf.set_text_color(0, 0, 0)
         for i in head[:-2]:
             pdf.cell(col_width, 2 * th, " - ", border=1, fill=True, align='C')
         pdf.set_text_color(0, 0, 255)
-        pdf.cell(col_width, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
+        pdf.cell(col_width_f, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
         pdf.set_text_color(255, 0, 0)
-        pdf.cell(col_width, 2 * th, str(total_retraso), border=1, fill=True, align='C')
+        pdf.cell(col_width_f, 2 * th, str(total_retraso), border=1, fill=True, align='C')
 
+        pdf.ln(10)
+        pdf.ln(10)
+        pdf.set_text_color(0, 0, 0)
+       # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
+        pdf.ln(10)
+        pdf.set_font('Arial', '', 15)
+        pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
         pdf.output('out.pdf')
     except Exception as e:
         print("Problem here creating the pdf")
@@ -571,11 +592,10 @@ def trip_report():
         pdf.output('out.pdf')
     finally:
         pdf2 = open("out.pdf")
-        response = Response(pdf2.read(), mimetype="application/pdf",
-                            headers={"Content-disposition": "attachment; filename=report.pdf"})
+        response = Response(pdf2.read(), mimetype="application/pdf", headers={"Content-disposition": "attachment; filename=report.pdf"})
         pdf2.close()
         os.remove("out.pdf")
-        return response
+    return response
 
 
 def convert_template(template, **kwargs):
