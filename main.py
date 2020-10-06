@@ -339,7 +339,7 @@ def dailyreport():
             # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
             pdf.ln(10)
             pdf.set_font('Arial', '', 15)
-            if not viaje["comments"]:
+            if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"] == "None"):
                 viaje["comments"] = ""
             pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
 
@@ -503,7 +503,7 @@ def dayreport():
         # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
         pdf.ln(10)
         pdf.set_font('Arial', '', 15)
-        if not viaje["comments"]:
+        if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"] == "None"):
             viaje["comments"] = ""
         pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
 
@@ -660,7 +660,7 @@ def trip_report():
        # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
         pdf.ln(10)
         pdf.set_font('Arial', '', 15)
-        if not viaje["comments"]:
+        if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"] == "None"):
             viaje["comments"] = ""
         pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
         pdf.output('out.pdf')
