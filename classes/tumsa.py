@@ -10,13 +10,25 @@ class Tumsa(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 
+    def delete_viaje(self, viaje):
+        try:
+            conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432", database=self.dbname)
+            sql = "DELETE FROM departures where nid='"+viaje+"'"
+            cursor = conn.cursor()
+            cursor.execute(sql, ())
+            conn.commit()
+            return True
+        except (Exception, pg.Error) as error:
+            print(error)
+            return False
+
     def insert_viaje(self, viaje):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432", database=self.dbname)
             sql = "INSERT INTO departures(nid,trip,vehicle,created,start_date,end_date,rounds,start_point,end_point," \
                   "total_time,route,comments,delay) values(uuid_generate_v4(),%s,%s,NOW(),%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             cursor = conn.cursor()
-            cursor.execute(sql, (viaje["trip"], viaje["vehicle"], viaje["start_date"], viaje["end_date"], viaje["rounds"],
+            cursor.execute(sql, (json.dumps(viaje["trip"]), viaje["vehicle"], viaje["start_date"], viaje["end_date"], viaje["rounds"],
                                  viaje["start_point"], viaje["end_point"], viaje["total_time"], viaje["route"],
                                  viaje["comments"], viaje["delay"]))
             conn.commit()
@@ -139,7 +151,6 @@ class Tumsa(object):
                 role["start_point"] = row[4]
                 role["end_point"] = row[5]
                 role["comments"] = str(row[6])
-                role["delay"] = int(row[7])
                 roles.append(role)
         except (Exception, pg.Error) as error:
             print(error)

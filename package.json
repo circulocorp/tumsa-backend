@@ -1,6 +1,6 @@
 {
 	"name": "tumsa-backend",
-	"version": "0.9.1",
+	"version": "1.0.0",
 	"dev": {
 		"secrets": false,
         "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
