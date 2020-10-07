@@ -11,6 +11,7 @@ from fpdf import FPDF, HTMLMixin
 import os
 from io import StringIO
 from datetime import datetime, timedelta
+import math
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -148,6 +149,13 @@ def create_user(user):
     print(res)
     return json.dumps(res)
 
+@app.route('/api/departure', methods=["DELETE"])
+def delete_viaje():
+    tumsa = Tumsa()
+    viaje = request.json["viaje"]
+    tumsa.delete_viaje(viaje)
+    return json.dumps({})
+
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -259,13 +267,13 @@ def dailyreport():
                         estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                         calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                         calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                        calc["delay"] = int((estimated - real).total_seconds() / 60)
-                        '''
+                        calc["delay"] = int(math.trunc(estimated - real).total_seconds() / 60)
+
                         if calc["delay"] < 0:
                             calc["delay"] = calc["delay"] + delay
                         elif calc["delay"] > 0:
                             calc["delay"] = calc["delay"] - delay
-                        '''
+
 
                         calc["check"] = 1
                 all[int(place["round"]) - 1].append(calc)
@@ -295,10 +303,10 @@ def dailyreport():
                 pos = -1
                 for point in vuelta:
                     pos += 1
-                    if point["delay"] < (-delay):
+                    if point["delay"] < 0:
                         if pos != len(vuelta) - 1:
                             atraso = atraso + int(point["delay"])
-                    elif point["delay"] > delay:
+                    elif point["delay"] > 0:
                         pdf.set_text_color(0, 0, 255)
                         if pos != len(vuelta) - 1:
                             adelanto = adelanto + int(point["delay"])
@@ -308,9 +316,9 @@ def dailyreport():
                     if point["check"] == 1:
                         pdf.set_text_color(0, 0, 0)
                         pdf.cell(col_width / 2, 2 * th, point["estimated_hour"], border=1, align='C')
-                        if point["delay"] < (-delay):
+                        if point["delay"] < 0:
                             pdf.set_text_color(255, 0, 0)
-                        elif point["delay"] > delay:
+                        elif point["delay"] > 0:
                             pdf.set_text_color(0, 0, 255)
                         pdf.cell(col_width / 2, 2 * th, " " + point["real_hour"] + "(" + str(point["delay"]) + ")",
                                  border=1, align='C')
@@ -339,7 +347,7 @@ def dailyreport():
             # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
             pdf.ln(10)
             pdf.set_font('Arial', '', 15)
-            if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"]) == "None":
+            if not viaje["comments"] or len(viaje["comments"]) < 1 or viaje["comments"] == "None":
                 viaje["comments"] = ""
             pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
 
@@ -423,13 +431,13 @@ def dayreport():
                     estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                     calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                     calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                    calc["delay"] = int((estimated - real).total_seconds() / 60)
-                    '''
+                    calc["delay"] = int(math.trunc(estimated - real).total_seconds() / 60)
+
                     if calc["delay"] < 0:
                         calc["delay"] = calc["delay"] + delay
                     elif calc["delay"] > 0:
                         calc["delay"] = calc["delay"] - delay
-                    '''
+
 
                     calc["check"] = 1
             all[int(place["round"]) - 1].append(calc)
@@ -459,10 +467,10 @@ def dayreport():
             pos = -1
             for point in vuelta:
                 pos += 1
-                if point["delay"] < (-delay):
+                if point["delay"] < 0:
                     if pos != len(vuelta) - 1:
                         atraso = atraso + int(point["delay"])
-                elif point["delay"] > delay:
+                elif point["delay"] > 0:
                     pdf.set_text_color(0, 0, 255)
                     if pos != len(vuelta) - 1:
                         adelanto = adelanto + int(point["delay"])
@@ -472,9 +480,9 @@ def dayreport():
                 if point["check"] == 1:
                     pdf.set_text_color(0, 0, 0)
                     pdf.cell(col_width / 2, 2 * th, point["estimated_hour"], border=1, align='C')
-                    if point["delay"] < (-delay):
+                    if point["delay"] < 0:
                         pdf.set_text_color(255, 0, 0)
-                    elif point["delay"] > delay:
+                    elif point["delay"] > 0:
                         pdf.set_text_color(0, 0, 255)
                     pdf.cell(col_width / 2, 2 * th, " " + point["real_hour"] + "(" + str(point["delay"]) + ")",
                              border=1, align='C')
@@ -503,7 +511,7 @@ def dayreport():
         # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
         pdf.ln(10)
         pdf.set_font('Arial', '', 15)
-        if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"]) == "None":
+        if not viaje["comments"] or len(viaje["comments"]) < 1 or viaje["comments"] == "None":
             viaje["comments"] = ""
         pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
 
@@ -580,13 +588,12 @@ def trip_report():
                     estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                     calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                     calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                    calc["delay"] = int((estimated - real).total_seconds() / 60)
-                    '''
+                    calc["delay"] = int(math.trunc((estimated - real).total_seconds() / 60))
+
                     if calc["delay"] < 0:
                         calc["delay"] = calc["delay"] + delay
                     elif calc["delay"] > 0:
                         calc["delay"] = calc["delay"] - delay
-                    '''
 
                     calc["check"] = 1
             all[int(place["round"])-1].append(calc)
@@ -617,10 +624,10 @@ def trip_report():
             pos = -1
             for point in vuelta:
                 pos += 1
-                if point["delay"] < (-delay):
+                if point["delay"] < 0:
                     if pos != len(vuelta) - 1:
                         atraso = atraso + int(point["delay"])
-                elif point["delay"] > delay:
+                elif point["delay"] > 0:
                     pdf.set_text_color(0, 0, 255)
                     if pos != len(vuelta) - 1:
                         adelanto = adelanto + int(point["delay"])
@@ -630,7 +637,7 @@ def trip_report():
                 if point["check"] == 1:
                     pdf.set_text_color(0, 0, 0)
                     pdf.cell(col_width/2, 2*th, point["estimated_hour"], border=1, align='C')
-                    if point["delay"] < (-delay):
+                    if point["delay"] < 0:
                         pdf.set_text_color(255, 0, 0)
                     elif point["delay"] > delay:
                         pdf.set_text_color(0, 0, 255)
@@ -660,7 +667,7 @@ def trip_report():
        # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
         pdf.ln(10)
         pdf.set_font('Arial', '', 15)
-        if not viaje["comments"] or len(viaje["comments"]) < 1 or len(viaje["comments"]) == "None":
+        if not viaje["comments"] or len(viaje["comments"]) < 1 or viaje["comments"] == "None":
             viaje["comments"] = ""
         pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
         pdf.output('out.pdf')
