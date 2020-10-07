@@ -639,7 +639,7 @@ def trip_report():
                     pdf.cell(col_width/2, 2*th, point["estimated_hour"], border=1, align='C')
                     if point["delay"] < 0:
                         pdf.set_text_color(255, 0, 0)
-                    elif point["delay"] > delay:
+                    elif point["delay"] > 0:
                         pdf.set_text_color(0, 0, 255)
                     pdf.cell(col_width/2, 2*th, " "+point["real_hour"] + "(" + str(point["delay"]) + ")", border=1, align='C')
                 else:
