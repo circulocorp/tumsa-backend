@@ -180,10 +180,10 @@ class Tumsa(object):
                         found = 0
                         for cond in json.loads(place["lastComment"]):
                             dt2 = Utils.format_date(start + timedelta(minutes=(time + int(place["time"]))), "%H:%M")
-                            if cond["key"] == route["name"] and (i+1) == int(cond["vuelta"]) and dt2 == cond["time"]:
+                            if cond["k"] == route["name"] and (i+1) == int(cond["v"]) and dt2 == cond["t1"]:
                                 place2["condition"] = cond
                                 oldtime = start + timedelta(minutes=(time + int(place["time"])))
-                                ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["ntime"]+":00", "%Y-%m-%d %H:%M:%S")
+                                ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["t2"]+":00", "%Y-%m-%d %H:%M:%S")
                                 time = time + int((ntime-oldtime).seconds / 60) + int(place["time"])
                                 found = 1
                                 break
