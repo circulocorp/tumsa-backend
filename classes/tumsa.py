@@ -168,6 +168,7 @@ class Tumsa(object):
         started = 0
         for i in range(int(role["rounds"])):
             for place in route["points"]["places"]:
+                print(place)
                 place2 = {}
                 place2["id"] = place["id"]
                 place2["description"] = place["description"]
@@ -204,6 +205,7 @@ class Tumsa(object):
         calc["end_date"] = calc["start_date"] + timedelta(minutes=time)
         calc["start_point"] = route["points"]["places"][0]["id"]
         calc["end_point"] = route["points"]["places"][-1]["id"]
+
         return calc
 
     def get_ruta(self, id):

@@ -250,13 +250,16 @@ def dailyreport():
                 calc["delay"] = 0
                 calc["check"] = 0
                 calc["estimated_hour"] = ""
+                calc["color"] = "black"
                 if place["hour"] != "":
                     calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                                "%H:%M")
                     start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                                   + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                                   + timedelta(hours=5) - timedelta(minutes=30),
+                                                   "%Y-%m-%dT%H:%M:%S") + "Z"
                     end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                                 + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                                 + timedelta(hours=5) + timedelta(minutes=30),
+                                                 "%Y-%m-%dT%H:%M:%S") + "Z"
 
                     row = df[df["place_Id"] == calc["place_Id"]]
                     row2 = row[row["entryUtcTimestamp"] >= start_date]
@@ -267,13 +270,21 @@ def dailyreport():
                         estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                         calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                         calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                        calc["delay"] = int(math.trunc(estimated - real).total_seconds() / 60)
+                        real_hour = Utils.string_to_date(Utils.format_date(real, "%Y-%m-%d %H:%M") + ":00",
+                                                         "%Y-%m-%d %H:%M:%S")
 
-                        if calc["delay"] < 0:
-                            calc["delay"] = calc["delay"] + delay
-                        elif calc["delay"] > 0:
-                            calc["delay"] = calc["delay"] - delay
+                        diff = int((estimated - real_hour).total_seconds() / 60)
 
+                        if real_hour < (estimated - timedelta(minutes=delay)):
+                            calc["delay"] = abs(diff)
+                            calc["color"] = "blue"
+                        else:
+                            if real_hour > (estimated + timedelta(minutes=delay)):
+                                calc["delay"] = diff
+                                calc["color"] = "red"
+                            else:
+                                calc["delay"] = diff
+                                calc["color"] = "black"
 
                         calc["check"] = 1
                 all[int(place["round"]) - 1].append(calc)
@@ -303,10 +314,10 @@ def dailyreport():
                 pos = -1
                 for point in vuelta:
                     pos += 1
-                    if point["delay"] < 0:
+                    if point["color"] == "red":
                         if pos != len(vuelta) - 1:
                             atraso = atraso + int(point["delay"])
-                    elif point["delay"] > 0:
+                    elif point["color"] == "blue":
                         pdf.set_text_color(0, 0, 255)
                         if pos != len(vuelta) - 1:
                             adelanto = adelanto + int(point["delay"])
@@ -316,9 +327,9 @@ def dailyreport():
                     if point["check"] == 1:
                         pdf.set_text_color(0, 0, 0)
                         pdf.cell(col_width / 2, 2 * th, point["estimated_hour"], border=1, align='C')
-                        if point["delay"] < 0:
+                        if point["color"] == "red":
                             pdf.set_text_color(255, 0, 0)
-                        elif point["delay"] > 0:
+                        elif point["color"] == "blue":
                             pdf.set_text_color(0, 0, 255)
                         pdf.cell(col_width / 2, 2 * th, " " + point["real_hour"] + "(" + str(point["delay"]) + ")",
                                  border=1, align='C')
@@ -414,6 +425,7 @@ def dayreport():
             calc["delay"] = 0
             calc["check"] = 0
             calc["estimated_hour"] = ""
+            calc["color"] = "black"
             if place["hour"] != "":
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                            "%H:%M")
@@ -431,13 +443,21 @@ def dayreport():
                     estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                     calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                     calc["real_hour"] = Utils.format_date(real, "%H:%M")
-                    calc["delay"] = int(math.trunc(estimated - real).total_seconds() / 60)
+                    real_hour = Utils.string_to_date(Utils.format_date(real, "%Y-%m-%d %H:%M") + ":00",
+                                                     "%Y-%m-%d %H:%M:%S")
 
-                    if calc["delay"] < 0:
-                        calc["delay"] = calc["delay"] + delay
-                    elif calc["delay"] > 0:
-                        calc["delay"] = calc["delay"] - delay
+                    diff = int((estimated - real_hour).total_seconds() / 60)
 
+                    if real_hour < (estimated - timedelta(minutes=delay)):
+                        calc["delay"] = abs(diff)
+                        calc["color"] = "blue"
+                    else:
+                        if real_hour > (estimated + timedelta(minutes=delay)):
+                            calc["delay"] = diff
+                            calc["color"] = "red"
+                        else:
+                            calc["delay"] = diff
+                            calc["color"] = "black"
 
                     calc["check"] = 1
             all[int(place["round"]) - 1].append(calc)
@@ -467,10 +487,10 @@ def dayreport():
             pos = -1
             for point in vuelta:
                 pos += 1
-                if point["delay"] < 0:
+                if point["color"] == "red":
                     if pos != len(vuelta) - 1:
                         atraso = atraso + int(point["delay"])
-                elif point["delay"] > 0:
+                elif point["color"] == "blue":
                     pdf.set_text_color(0, 0, 255)
                     if pos != len(vuelta) - 1:
                         adelanto = adelanto + int(point["delay"])
@@ -480,9 +500,9 @@ def dayreport():
                 if point["check"] == 1:
                     pdf.set_text_color(0, 0, 0)
                     pdf.cell(col_width / 2, 2 * th, point["estimated_hour"], border=1, align='C')
-                    if point["delay"] < 0:
+                    if point["color"] == "red":
                         pdf.set_text_color(255, 0, 0)
-                    elif point["delay"] > 0:
+                    elif point["color"] == "blue":
                         pdf.set_text_color(0, 0, 255)
                     pdf.cell(col_width / 2, 2 * th, " " + point["real_hour"] + "(" + str(point["delay"]) + ")",
                              border=1, align='C')
@@ -573,6 +593,7 @@ def trip_report():
             calc["delay"] = 0
             calc["check"] = 0
             calc["estimated_hour"] = ""
+            calc["color"] = "black"
             if place["hour"] != "":
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
                 start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
@@ -595,11 +616,11 @@ def trip_report():
 
                     if real_hour < (estimated - timedelta(minutes=delay)):
                         calc["delay"] = abs(diff)
-                        calc["color"] = "red"
+                        calc["color"] = "blue"
                     else:
                         if real_hour > (estimated + timedelta(minutes=delay)):
                             calc["delay"] = diff
-                            calc["color"] = "blue"
+                            calc["color"] = "red"
                         else:
                             calc["delay"] = diff
                             calc["color"] = "black"
