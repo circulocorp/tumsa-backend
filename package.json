@@ -1,10 +1,10 @@
 {
 	"name": "tumsa-backend",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"dev": {
 		"secrets": false,
         "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
-		"dbhost": "192.168.15.10",
+		"dbhost": "127.0.0.1",
 		"dbuser": "postgres",
 		"dbpass": "admin1234",
 		"dbname": "tumsadev"

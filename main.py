@@ -276,11 +276,11 @@ def dailyreport():
                         diff = int((estimated - real_hour).total_seconds() / 60)
 
                         if real_hour < (estimated - timedelta(minutes=delay)):
-                            calc["delay"] = abs(diff)
+                            calc["delay"] = abs(diff - delay)
                             calc["color"] = "blue"
                         else:
                             if real_hour > (estimated + timedelta(minutes=delay)):
-                                calc["delay"] = diff
+                                calc["delay"] = abs(diff + delay)
                                 calc["color"] = "red"
                             else:
                                 calc["delay"] = diff
@@ -449,11 +449,11 @@ def dayreport():
                     diff = int((estimated - real_hour).total_seconds() / 60)
 
                     if real_hour < (estimated - timedelta(minutes=delay)):
-                        calc["delay"] = abs(diff)
+                        calc["delay"] = abs(diff - delay)
                         calc["color"] = "blue"
                     else:
                         if real_hour > (estimated + timedelta(minutes=delay)):
-                            calc["delay"] = diff
+                            calc["delay"] = abs(diff + delay)
                             calc["color"] = "red"
                         else:
                             calc["delay"] = diff
@@ -615,11 +615,11 @@ def trip_report():
                     diff = int((estimated - real_hour).total_seconds() / 60)
 
                     if real_hour < (estimated - timedelta(minutes=delay)):
-                        calc["delay"] = abs(diff)
+                        calc["delay"] = abs(diff - delay)
                         calc["color"] = "blue"
                     else:
                         if real_hour > (estimated + timedelta(minutes=delay)):
-                            calc["delay"] = diff
+                            calc["delay"] = abs(diff + delay)
                             calc["color"] = "red"
                         else:
                             calc["delay"] = diff
