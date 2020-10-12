@@ -33,29 +33,35 @@ else:
 
 class HTML2PDF(FPDF, HTMLMixin):
 
-    def set_data(self, route=None, vehicle=None, start_date=None, tolerancia=1):
+    def set_data(self, route=None, vehicle=None, start_date=None, tolerancia=1,total_pages=1):
         self._route = route
         self._vehicle = vehicle
         self._start_date = start_date
         self._tolerancia = str(tolerancia)+" min."
+        self.total_pages = total_pages
 
     def header(self):
         self.set_font('Arial', 'B', 15)
         # Move to the right
         # Framed title
-        self.cell(300, 10, 'REGION MANZANILLO', 0, 0, 'C')
+        self.cell(300, 10, 'MANZANILLO, COLIMA', 0, 0, 'C')
         # Line break
         self.ln(10)
         self.cell(300, 10, 'SISTEMA TUCA', 0, 0, 'C')
         self.ln(10)
         self.cell(300, 10, 'REPORTE DE CHECADAS', 0, 0, 'C')
         self.ln(20)
-        self.cell(50, 10, self._route, 0, 0, 'C')
+        self.cell(50, 10, "RUTA "+self._route, 0, 0, 'C')
         self.cell(155, 10, "No. Economico: "+self._vehicle, 0, 0, 'C')
-        #self.cell(50, 10, "Tolerancia: " +self._tolerancia, 0, 0, 'C')
         self.cell(100, 10, "Fecha: "+Utils.format_date(Utils.string_to_date(
             self._start_date, "%Y-%m-%d %H:%M:%S"), "%d/%m/%Y"), 0, 0, 'C')
         self.ln(20)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font('Arial', '', 10)
+        # Print centered page number
+        self.cell(0, 10, 'Pagina '+str(self.page_no())+'/'+str(self.total_pages), 0, 0, 'C')
 
 
 
@@ -207,8 +213,10 @@ def dailyreport():
     m = MZone()
     token = request.json["token"]
     delay = 1
+    pages = 1
     m.set_token(token)
     if len(viajes) > 0:
+        pages = len(viajes)
         for viaje in viajes:
             delay = int(viaje["delay"])
             start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
@@ -219,7 +227,7 @@ def dailyreport():
             m.set_token(token)
             pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
                          start_date=viaje["start_date"],
-                         tolerancia=delay)
+                         tolerancia=delay, total_pages=pages)
             pdf.add_page(orientation='L')
             epw = pdf.w - 2 * pdf.l_margin
 
@@ -384,6 +392,7 @@ def dayreport():
     m = MZone()
     token = request.json["token"]
     m.set_token(token)
+    pages = len(viajes)
     for viaje in viajes:
         delay = int(viaje["delay"])
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
@@ -394,7 +403,7 @@ def dayreport():
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
                      start_date=viaje["start_date"],
-                     tolerancia=delay)
+                     tolerancia=delay, total_pages=pages)
         pdf.add_page(orientation='L')
         epw = pdf.w - 2 * pdf.l_margin
 
@@ -559,7 +568,7 @@ def trip_report():
 
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"],
-                     tolerancia=delay)
+                     tolerancia=delay, total_pages=1)
         pdf.add_page(orientation='L')
         epw = pdf.w - 2 * pdf.l_margin
 
