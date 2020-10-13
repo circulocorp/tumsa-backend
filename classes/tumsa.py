@@ -75,7 +75,7 @@ class Tumsa(object):
             end = base+" 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and end_date<=%s order by start_date asc"
+            sql = "select * from departures where start_date>=%s and start_date<=%s order by start_date asc"
             cursor = conn.cursor()
             cursor.execute(sql, (start, end))
             data = cursor.fetchall()
@@ -107,7 +107,7 @@ class Tumsa(object):
             end = day + " 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and end_date<=%s "
+            sql = "select * from departures where start_date>=%s and start_date<=%s "
             if route:
                 sql = sql+" and route->>'nid' = '"+route+"'"
             sql = sql+" order by start_date asc"
