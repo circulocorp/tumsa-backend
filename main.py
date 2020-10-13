@@ -388,7 +388,8 @@ def dayreport():
     pdf = HTML2PDF()
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
     day = request.json["date"]
-    viajes = tumsa.get_day_trips(day)
+    route = request.json["route"]
+    viajes = tumsa.get_day_trips(day, route=route)
     m = MZone()
     token = request.json["token"]
     m.set_token(token)

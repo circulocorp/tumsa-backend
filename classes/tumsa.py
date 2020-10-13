@@ -100,15 +100,17 @@ class Tumsa(object):
         finally:
             return viajes
 
-    def get_day_trips(self, day):
+    def get_day_trips(self, day, route=None):
         viajes = []
         try:
-            #base = Utils.format_date(day, "%Y-%m-%d")
             start = day + " 00:00:00"
             end = day + " 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and end_date<=%s order by start_date asc"
+            sql = "select * from departures where start_date>=%s and end_date<=%s "
+            if route:
+                sql = sql+" and route->>'nid' = '"+route+"'"
+            sql = sql+" order by start_date asc"
             cursor = conn.cursor()
             cursor.execute(sql, (start, end))
             data = cursor.fetchall()
