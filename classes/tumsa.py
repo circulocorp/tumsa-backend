@@ -67,7 +67,7 @@ class Tumsa(object):
         finally:
             return viajes
 
-    def get_todays_trips(self):
+    def get_todays_trips(self, route=None):
         viajes = []
         try:
             base = Utils.format_date(datetime.datetime.now(), "%Y-%m-%d")
@@ -75,7 +75,11 @@ class Tumsa(object):
             end = base+" 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and start_date<=%s order by start_date asc"
+            sql = "select * from departures where start_date>=%s and start_date<=%s "
+
+            if route:
+                sql = sql+" and route->>'nid' == '"+route+"'"
+            sql = sql + " order by start_date asc"
             cursor = conn.cursor()
             cursor.execute(sql, (start, end))
             data = cursor.fetchall()

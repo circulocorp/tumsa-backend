@@ -209,9 +209,12 @@ def calc_trip():
 def dailyreport():
     pdf = HTML2PDF()
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
-    viajes = tumsa.get_todays_trips()
-    m = MZone()
+    today = Utils.format_date(datetime.now(), "%Y-%m-%d")
+    route = request.json["route"]
     token = request.json["token"]
+    viajes = tumsa.get_day_trips(today, route)
+    m = MZone()
+
     delay = 1
     pages = 1
     m.set_token(token)
@@ -298,7 +301,7 @@ def dailyreport():
                 all[int(place["round"]) - 1].append(calc)
 
             col_width = epw / (len(head) + 1)
-            pdf.set_font('Arial', '', 7)
+            pdf.set_font('Arial', 'B', 8)
 
             th = pdf.font_size
             pdf.set_fill_color(234, 230, 230)
@@ -311,6 +314,7 @@ def dailyreport():
             pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
             pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
 
+            pdf.set_font('Arial', '', 7)
             pdf.ln(2 * th)
             th = pdf.font_size
 
@@ -473,7 +477,7 @@ def dayreport():
             all[int(place["round"]) - 1].append(calc)
 
         col_width = epw / (len(head) + 1)
-        pdf.set_font('Arial', '', 7)
+        pdf.set_font('Arial', 'B', 8)
 
         th = pdf.font_size
         pdf.set_fill_color(234, 230, 230)
@@ -486,6 +490,7 @@ def dayreport():
         pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
         pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
 
+        pdf.set_font('Arial', '', 7)
         pdf.ln(2 * th)
         th = pdf.font_size
 
@@ -640,7 +645,7 @@ def trip_report():
 
 
         col_width = epw / (len(head) + 1)
-        pdf.set_font('Arial', '', 7)
+        pdf.set_font('Arial', 'B', 8)
 
         th = pdf.font_size
         pdf.set_fill_color(234, 230, 230)
@@ -653,6 +658,7 @@ def trip_report():
         pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
         pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
 
+        pdf.set_font('Arial', '', 7)
         pdf.ln(2 * th)
         th = pdf.font_size
 
