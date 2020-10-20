@@ -70,12 +70,32 @@ def version():
     return config["version"]
 
 
+
+@app.route('/api/viajes', methods=['POST'])
+def viajes():
+    m = MZone()
+    viajes = []
+    token = request.json["token"]
+    day = request.json["date"]
+    m.set_token(token)
+    user = m.current_user()
+    perfil = json.loads(user["phoneHome"])["perfil"]
+    vehicles = [v['id'] for v in m.get_vehicles()]
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
+    trips = tumsa.get_day_trips(day)
+    if perfil != "admin":
+        viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
+    else:
+        viajes = trips
+    return json.dumps(viajes)
+
 @app.route('/api/vehicles', methods=['POST'])
 def vehicles():
     m = MZone()
     token = request.json["token"]
     m.set_token(token)
     search = request.json["search"]
+    user = m.current_user()
     res = m.get_vehicles(extra="contains(registration,'"+search+"') or contains(unit_Description,'"+search+
                                "') or contains(description,'"+search+"')")
     return json.dumps(res)
@@ -173,6 +193,7 @@ def login():
     if m.check_token():
         res = m.current_user()
         res["token"] = m.get_token()
+        res["perfil"] = json.loads(res["phoneHome"])["perfil"]
     return res
 
 #deprecated

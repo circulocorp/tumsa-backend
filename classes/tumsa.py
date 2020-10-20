@@ -37,6 +37,7 @@ class Tumsa(object):
             print(error)
             return False
 
+
     def get_viaje(self, id):
         viajes = []
         try:
@@ -66,6 +67,38 @@ class Tumsa(object):
             print(error)
         finally:
             return viajes
+
+
+    def get_trips(self):
+        viajes = []
+        try:
+            conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
+                              database=self.dbname)
+            sql = "select * from departures"
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            data = cursor.fetchall()
+            for row in data:
+                viaje = {}
+                viaje["nid"] = row[0]
+                viaje["trip"] = row[1]
+                viaje["route"] = row[2]
+                viaje["rounds"] = int(row[3])
+                viaje["total_time"] = int(row[4])
+                viaje["vehicle"] = row[5]
+                viaje["created"] = str(row[6])
+                viaje["start_date"] = str(row[7])
+                viaje["end_date"] = str(row[8])
+                viaje["start_point"] = str(row[9])
+                viaje["end_point"] = str(row[10])
+                viaje["comments"] = str(row[11])
+                viaje["delay"] = int(row[12])
+                viajes.append(viaje)
+        except (Exception, pg.Error) as error:
+            print(error)
+        finally:
+            return viajes
+
 
     def get_todays_trips(self, route=None):
         viajes = []
