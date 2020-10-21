@@ -233,12 +233,23 @@ def dailyreport():
     today = Utils.format_date(datetime.now(), "%Y-%m-%d")
     route = request.json["route"]
     token = request.json["token"]
-    viajes = tumsa.get_day_trips(today, route)
+    viajes = []
     m = MZone()
 
     delay = 1
     pages = 1
     m.set_token(token)
+
+    user = m.current_user()
+    perfil = json.loads(user["phoneHome"])["perfil"]
+    vehicles = [v['id'] for v in m.get_vehicles()]
+    trips = tumsa.get_day_trips(today, route)
+
+    if perfil != "admin":
+        viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
+    else:
+        viajes = trips
+
     if len(viajes) > 0:
         pages = len(viajes)
         for viaje in viajes:
@@ -414,10 +425,19 @@ def dayreport():
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
     day = request.json["date"]
     route = request.json["route"]
-    viajes = tumsa.get_day_trips(day, route=route)
+    viajes = []
     m = MZone()
     token = request.json["token"]
     m.set_token(token)
+    user = m.current_user()
+    perfil = json.loads(user["phoneHome"])["perfil"]
+    vehicles = [v['id'] for v in m.get_vehicles()]
+    trips = tumsa.get_day_trips(day, route=route)
+    if perfil != "admin":
+        viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
+    else:
+        viajes = trips
+        
     pages = len(viajes)
     for viaje in viajes:
         delay = int(viaje["delay"])
