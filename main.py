@@ -17,6 +17,7 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 config = Utils.read_config("package.json")
 env_cfg = {}
+UTC = 6
 
 if os.environ is None or "environment" not in os.environ:
     env_cfg = config["dev"]
@@ -255,9 +256,9 @@ def dailyreport():
         for viaje in viajes:
             delay = int(viaje["delay"])
             start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
-                                           - timedelta(hours=5) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                           - timedelta(hours=UTC) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
             end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                         + timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                         + timedelta(hours=UTC) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
 
             m.set_token(token)
             pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
@@ -298,10 +299,10 @@ def dailyreport():
                     calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                                "%H:%M")
                     start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                                   + timedelta(hours=5) - timedelta(minutes=30),
+                                                   + timedelta(hours=UTC) - timedelta(minutes=30),
                                                    "%Y-%m-%dT%H:%M:%S") + "Z"
                     end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                                 + timedelta(hours=5) + timedelta(minutes=30),
+                                                 + timedelta(hours=UTC) + timedelta(minutes=30),
                                                  "%Y-%m-%dT%H:%M:%S") + "Z"
 
                     row = df[df["place_Id"] == calc["place_Id"]]
@@ -442,9 +443,9 @@ def dayreport():
     for viaje in viajes:
         delay = int(viaje["delay"])
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
-                                       - timedelta(hours=5) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                       - timedelta(hours=UTC) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
         end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                     + timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                     + timedelta(hours=UTC) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
 
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
@@ -485,9 +486,9 @@ def dayreport():
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                            "%H:%M")
                 start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                               + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                               + timedelta(hours=UTC) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
                 end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                             + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                             + timedelta(hours=UTC) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
                 row = df[df["place_Id"] == calc["place_Id"]]
                 row2 = row[row["entryUtcTimestamp"] >= start_date]
@@ -609,9 +610,9 @@ def trip_report():
         viaje = tumsa.get_viaje(request.json["viaje"])[0]
         delay = int(viaje["delay"])
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
-                                       - timedelta(hours=5) - timedelta(minutes=40) , "%Y-%m-%dT%H:%M:%S")+"Z"
+                                       - timedelta(hours=UTC) - timedelta(minutes=40) , "%Y-%m-%dT%H:%M:%S")+"Z"
         end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
-                                     + timedelta(hours=5) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S")+"Z"
+                                     + timedelta(hours=UTC) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S")+"Z"
 
         m.set_token(token)
         pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"], start_date=viaje["start_date"],
@@ -653,9 +654,9 @@ def trip_report():
             if place["hour"] != "":
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"), "%H:%M")
                 start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                               + timedelta(hours=5) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                               + timedelta(hours=UTC) - timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
                 end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                             + timedelta(hours=5) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                             + timedelta(hours=UTC) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
 
                 row = df[df["place_Id"] == calc["place_Id"]]
                 row2 = row[row["entryUtcTimestamp"] >= start_date]
