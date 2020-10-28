@@ -310,7 +310,7 @@ def dailyreport():
                     fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
                     if len(fence) > 0:
                         real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(
-                            hours=5)
+                            hours=UTC)
                         estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                         calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                         calc["real_hour"] = Utils.format_date(real, "%H:%M")
@@ -495,7 +495,7 @@ def dayreport():
                 fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
                 if len(fence) > 0:
                     real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(
-                        hours=5)
+                        hours=UTC)
                     estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                     calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                     calc["real_hour"] = Utils.format_date(real, "%H:%M")
@@ -662,7 +662,7 @@ def trip_report():
                 row2 = row[row["entryUtcTimestamp"] >= start_date]
                 fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
                 if len(fence) > 0:
-                    real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=5)
+                    real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=UTC)
                     estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
                     calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
                     calc["real_hour"] = Utils.format_date(real, "%H:%M")
