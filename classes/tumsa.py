@@ -177,7 +177,7 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from roles where route='"+ruta+"' order by priority desc,hour asc"
+            sql = "select * from roles where route='"+ruta+"' order by priority asc"
             cursor = conn.cursor()
             cursor.execute(sql)
             data = cursor.fetchall()
