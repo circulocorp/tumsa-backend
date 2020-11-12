@@ -145,6 +145,8 @@ class Tumsa(object):
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
             sql = "select * from departures where start_date>=%s and start_date<=%s "
+            print(sql)
+            print(start)
             if route:
                 sql = sql+" and route->>'nid' = '"+route+"'"
             sql = sql+" order by priority asc"
