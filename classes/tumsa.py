@@ -103,7 +103,7 @@ class Tumsa(object):
     def get_todays_trips(self, route=None):
         viajes = []
         try:
-            base = Utils.format_date(datetime.datetime.now(), "%Y-%m-%d")
+            base = Utils.format_date(Utils.datetime_zone(datetime.datetime.now(), "America/Mexico_City"), '%Y-%m-%d')
             start = base+" 00:00:00"
             end = base+" 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
@@ -147,7 +147,7 @@ class Tumsa(object):
             sql = "select * from departures where start_date>=%s and start_date<=%s "
             if route:
                 sql = sql+" and route->>'nid' = '"+route+"'"
-            sql = sql+" order by start_date asc"
+            sql = sql+" order by priority asc"
             cursor = conn.cursor()
             cursor.execute(sql, (start, end))
             data = cursor.fetchall()
@@ -190,6 +190,7 @@ class Tumsa(object):
                 role["start_point"] = row[4]
                 role["end_point"] = row[5]
                 role["comments"] = str(row[6])
+                role["priority"] = int(row[7])
                 roles.append(role)
         except (Exception, pg.Error) as error:
             print(error)

@@ -136,6 +136,7 @@ def create_trips():
                 viaje["rounds"] = roles[j]["rounds"]
                 viaje["start_point"] = calc["start_point"]
                 viaje["total_time"] = int(calc["total_time"])
+                viajes["priority"] = int(roles[j]["priority"])
                 viaje["end_point"] = calc["end_point"]
                 viaje["route"] = json.dumps(route[0])
                 viaje["comments"] = ""
@@ -231,7 +232,7 @@ def calc_trip():
 def dailyreport():
     pdf = HTML2PDF()
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
-    today = Utils.format_date(datetime.now(), "%Y-%m-%d")
+    today = Utils.format_date(Utils.datetime_zone(datetime.datetime.now(), "America/Mexico_City"), '%Y-%m-%d')
     route = request.json["route"]
     token = request.json["token"]
     viajes = []
