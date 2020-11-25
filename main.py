@@ -128,6 +128,7 @@ def create_trips():
             vehicle = m.get_vehicles(extra="description eq '" + camion + "'")
             if len(vehicle) > 0:
                 viaje = {}
+                print(roles[j]["priority"])
                 calc = tumsa.calc_trip(route[0], day, roles[j])
                 viaje["vehicle"] = json.dumps(vehicle[0])
                 viaje["start_date"] = str(calc["start_date"])
