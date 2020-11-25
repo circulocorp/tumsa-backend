@@ -137,7 +137,7 @@ def create_trips():
                 viaje["rounds"] = roles[j]["rounds"]
                 viaje["start_point"] = calc["start_point"]
                 viaje["total_time"] = int(calc["total_time"])
-                viajes["priority"] = int(roles[j]["priority"])
+                viaje["priority"] = int(roles[j]["priority"])
                 viaje["end_point"] = calc["end_point"]
                 viaje["route"] = json.dumps(route[0])
                 viaje["comments"] = ""
