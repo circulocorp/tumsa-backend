@@ -165,7 +165,8 @@ def places():
     print(token)
     m.set_token(token)
     res = m.get_points()
-    return json.dumps(res)
+    list = sorted(res, key=lambda k: k['description'])
+    return json.dumps(list)
 
 #deprecated
 @app.route('/api/users', methods=['POST'])
@@ -233,7 +234,7 @@ def calc_trip():
 def dailyreport():
     pdf = HTML2PDF()
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
-    today = Utils.format_date(Utils.datetime_zone(datetime.datetime.now(), "America/Mexico_City"), '%Y-%m-%d')
+    today = Utils.format_date(Utils.datetime_zone(datetime.now(), "America/Mexico_City"), '%Y-%m-%d')
     route = request.json["route"]
     token = request.json["token"]
     viajes = []
