@@ -210,7 +210,6 @@ class Tumsa(object):
         started = 0
         for i in range(int(role["rounds"])):
             for place in route["points"]["places"]:
-                print(place)
                 place2 = {}
                 place2["id"] = place["id"]
                 place2["description"] = place["description"]
@@ -227,7 +226,12 @@ class Tumsa(object):
                                 place2["condition"] = cond
                                 oldtime = start + timedelta(minutes=(time + int(place["time"])))
                                 ntime = Utils.string_to_date(Utils.format_date(start, "%Y-%m-%d")+" "+cond["t2"]+":00", "%Y-%m-%d %H:%M:%S")
-                                time = time + int((ntime-oldtime).seconds / 60) + int(place["time"])
+                                ftime = (ntime-oldtime).seconds
+                                if oldtime > ntime:
+                                    ftime = (oldtime-ntime).seconds
+                                    time = time - int(ftime / 60) + int(place["time"])
+                                else:
+                                    time = time + int(ftime / 60) + int(place["time"])
                                 found = 1
                                 break
                         if found == 0:
