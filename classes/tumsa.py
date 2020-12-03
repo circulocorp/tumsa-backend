@@ -111,8 +111,8 @@ class Tumsa(object):
             sql = "select * from departures where start_date>=%s and start_date<=%s "
 
             if route:
-                sql = sql+" and route->>'nid' == '"+route+"'"
-            sql = sql + " order by start_date asc"
+                sql = sql+" and route->>'nid' = '"+route+"'"
+            sql = sql + " order by priority asc"
             cursor = conn.cursor()
             cursor.execute(sql, (start, end))
             data = cursor.fetchall()
@@ -131,6 +131,7 @@ class Tumsa(object):
                 viaje["end_point"] = str(row[10])
                 viaje["comments"] = str(row[11])
                 viaje["delay"] = int(row[12])
+                viaje["priority"] = int(row[13])
                 viajes.append(viaje)
         except (Exception, pg.Error) as error:
             print(error)
@@ -168,6 +169,7 @@ class Tumsa(object):
                 viaje["end_point"] = str(row[10])
                 viaje["comments"] = str(row[11])
                 viaje["delay"] = int(row[12])
+                viaje["priority"] = int(row[13])
                 viajes.append(viaje)
         except (Exception, pg.Error) as error:
             print(error)
