@@ -312,7 +312,7 @@ def dailyreport():
                     if "place_Id" in df:
                         row = df[df["place_Id"] == calc["place_Id"]]
                         row2 = row[row["entryUtcTimestamp"] >= start_date]
-                        fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+                        fence = row2[row2["entryUtcTimestamp"] <= end_date].to_dict(orient='records')
 
                     if len(fence) > 0:
                         real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(
@@ -501,7 +501,7 @@ def dayreport():
                     if "place_Id" in df:
                         row = df[df["place_Id"] == calc["place_Id"]]
                         row2 = row[row["entryUtcTimestamp"] >= start_date]
-                        fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+                        fence = row2[row2["entryUtcTimestamp"] <= end_date].to_dict(orient='records')
 
                     if len(fence) > 0:
                         real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(
@@ -675,7 +675,7 @@ def trip_report():
                 if "place_Id" in df:
                     row = df[df["place_Id"] == calc["place_Id"]]
                     row2 = row[row["entryUtcTimestamp"] >= start_date]
-                    fence = row2[row2["entryUtcTimestamp"] <= end_date].iloc[-1:].to_dict(orient='records')
+                    fence = row2[row2["entryUtcTimestamp"] <= end_date].to_dict(orient='records')
 
                 if len(fence) > 0:
                     real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(hours=UTC)
