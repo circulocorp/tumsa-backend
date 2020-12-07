@@ -1,13 +1,14 @@
 {
 	"name": "tumsa-backend",
-	"version": "1.2.3",
+	"version": "1.2.4",
 	"dev": {
 		"secrets": false,
         "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
 		"dbhost": "127.0.0.1",
 		"dbuser": "postgres",
 		"dbpass": "admin1234",
-		"dbname": "tumsadev"
+		"dbname": "tumsadev",
+		"UTC": "6"
 	},
 	"stage": {
 		"secrets": false,
@@ -19,6 +20,7 @@
 		"secrets": true,
 		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
 		"dbhost": "tumsa.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
-		"dbname": "tumsa"
+		"dbname": "tumsa",
+		"UTC": "6"
 	}
 }

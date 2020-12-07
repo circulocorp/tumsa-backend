@@ -1,6 +1,9 @@
 import psycopg2 as pg
 from PydoNovosoft.utils import Utils
+from PydoNovosoft.scope import MZone
 from datetime import datetime, timedelta
+from classes.pdfreport import HTML2PDF
+import pandas as pd
 import datetime
 import json
 
@@ -279,3 +282,174 @@ class Tumsa(object):
             print(error)
         finally:
             return routes
+
+    def get_pdf_report(self, pdf=None, viaje=None, token=None, pages=1):
+
+        if pdf == None:
+            pdf = HTML2PDF()
+
+        m = MZone()
+        start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
+                                       - timedelta(hours=self.UTC) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+        end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
+                                     + timedelta(hours=self.UTC) + timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
+
+        m.set_token(token)
+        delay = int(viaje["delay"])
+        pdf.set_data(route=viaje["route"]["name"], vehicle=viaje["vehicle"]["description"],
+                     start_date=viaje["start_date"],
+                     tolerancia=delay, total_pages=pages)
+        pdf.add_page(orientation='L')
+        epw = pdf.w - 2 * pdf.l_margin
+
+
+        fences = m.get_geofences(
+            extra="vehicle_Id eq " + viaje["vehicle"]["id"] + " and entryUtcTimestamp gt " + start_date +
+                  " and entryUtcTimestamp lt " + end_date, orderby="entryUtcTimestamp asc")
+
+        df = pd.DataFrame(fences)
+        all = [[] for i in range(0, viaje["rounds"])]
+        head = []
+
+        for he in viaje["route"]["points"]["places"]:
+            head.append(he["description"])
+
+        trips = []
+        if "trip" in viaje["trip"]:
+            trips = viaje["trip"]["trip"]
+        else:
+            trips = viaje["trip"]
+
+        for place in trips:
+            calc = {}
+            calc["place_Id"] = place["id"]
+            calc["description"] = place["description"]
+            calc["estimated"] = place["hour"]
+            calc["real"] = ""
+            calc["real_hour"] = ""
+            calc["delay"] = 0
+            calc["check"] = 0
+            calc["estimated_hour"] = ""
+            calc["color"] = "black"
+            if place["hour"] != "":
+                fence = []
+                calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
+                                                           "%H:%M")
+                start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                               + timedelta(hours=self.UTC) - timedelta(minutes=30),
+                                               "%Y-%m-%dT%H:%M:%S") + "Z"
+                end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
+                                             + timedelta(hours=self.UTC) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+
+                if "place_Id" in df:
+                    row = df[df["place_Id"] == calc["place_Id"]]
+                    row2 = row[row["entryUtcTimestamp"] >= start_date]
+                    fence = row2[row2["entryUtcTimestamp"] <= end_date].to_dict(orient='records')
+
+                if len(fence) > 0:
+                    real = Utils.string_to_date(fence[0]["entryUtcTimestamp"], "%Y-%m-%dT%H:%M:%SZ") - timedelta(
+                        hours=self.UTC)
+                    estimated = Utils.string_to_date(calc["estimated"], "%Y-%m-%d %H:%M:%S")
+                    calc["real"] = Utils.format_date(real, "%Y-%m-%d %H:%M:%S")
+                    calc["real_hour"] = Utils.format_date(real, "%H:%M")
+                    real_hour = Utils.string_to_date(Utils.format_date(real, "%Y-%m-%d %H:%M") + ":00",
+                                                     "%Y-%m-%d %H:%M:%S")
+
+                    diff = int((estimated - real_hour).total_seconds() / 60)
+
+                    if real_hour < (estimated - timedelta(minutes=delay)):
+                        calc["delay"] = abs(diff - delay)
+                        calc["color"] = "blue"
+                    else:
+                        if real_hour > (estimated + timedelta(minutes=delay)):
+                            calc["delay"] = abs(diff + delay)
+                            calc["color"] = "red"
+                        else:
+                            calc["delay"] = diff
+                            calc["color"] = "black"
+
+                    calc["check"] = 1
+            all[int(place["round"]) - 1].append(calc)
+
+        col_width = epw / (len(head) + 2)
+        pdf.set_font('Arial', 'B', 8)
+
+        th = pdf.font_size
+        pdf.set_fill_color(234, 230, 230)
+        for data in head:
+            pdf.cell(col_width, 2 * th, data, border=1, fill=True, align='C')
+
+        head.append("ADNTO")
+        head.append("RTRSO")
+        col_width_f = 12
+        pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
+        pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
+
+        pdf.set_font('Arial', '', 7)
+        pdf.ln(2 * th)
+        th = pdf.font_size
+
+        total_adelanto = 0
+        total_retraso = 0
+
+        for vuelta in all:
+            atraso = 0
+            adelanto = 0
+            pos = -1
+            for point in vuelta:
+                pdf.cell(col_width, 2 * th, point["estimated_hour"], border='LRT', align='C')
+
+            pdf.cell(col_width_f, 2 * th, '', border='R', align='C')
+            pdf.cell(col_width_f, 2 * th, '', border='R', align='C')
+            pdf.ln(2 * th)
+            for point in vuelta:
+                pos += 1
+                if point["color"] == "red":
+                    if pos != len(vuelta) - 1:
+                        atraso = atraso + int(point["delay"])
+                elif point["color"] == "blue":
+                    pdf.set_text_color(0, 0, 255)
+                    if pos != len(vuelta) - 1:
+                        adelanto = adelanto + int(point["delay"])
+                else:
+                    pdf.set_text_color(0, 0, 0)
+
+                if point["check"] == 1:
+                    pdf.set_text_color(0, 0, 0)
+                    if point["color"] == "red":
+                        pdf.set_text_color(255, 0, 0)
+                    elif point["color"] == "blue":
+                        pdf.set_text_color(0, 0, 255)
+                    pdf.cell(col_width, 2 * th, ""+point["real_hour"] + "(" + str(point["delay"]) + ")", border='LRB', align='C')
+                else:
+                    pdf.set_text_color(0, 0, 0)
+                    pdf.cell(col_width, 2 * th, "S/CHK", border='LRB', align='C')
+
+            total_adelanto = total_adelanto + adelanto
+            total_retraso = total_retraso + atraso
+            pdf.set_text_color(0, 0, 255)
+            pdf.cell(col_width_f, 2 * th, str(adelanto), border='BR', align='C')
+            pdf.set_text_color(255, 0, 0)
+            pdf.cell(col_width_f, 2 * th, str(atraso), border='BR', align='C')
+            pdf.set_text_color(0, 0, 0)
+            pdf.ln(2 * th)
+
+        pdf.set_text_color(0, 0, 0)
+        for i in head[:-2]:
+            pdf.cell(col_width, 2 * th, " - ", border=1, fill=True, align='C')
+        pdf.set_text_color(0, 0, 255)
+        pdf.cell(col_width_f, 2 * th, str(total_adelanto), border=1, fill=True, align='C')
+        pdf.set_text_color(255, 0, 0)
+        pdf.cell(col_width_f, 2 * th, str(total_retraso), border=1, fill=True, align='C')
+
+        pdf.ln(10)
+        pdf.ln(10)
+        pdf.set_text_color(0, 0, 0)
+        # pdf.cell(50, 10, 'COMENTARIOS: ', 0, 0, 'L')
+        pdf.ln(10)
+        pdf.set_font('Arial', '', 15)
+        if not viaje["comments"] or len(viaje["comments"]) < 1 or viaje["comments"] == "None":
+            viaje["comments"] = ""
+        pdf.cell(200, 10, viaje["comments"], 0, 0, 'L')
+        return pdf
+

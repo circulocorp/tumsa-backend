@@ -4,10 +4,12 @@ from PydoNovosoft.scope import MZone
 from PydoNovosoft.utils import Utils
 from jinja2 import Environment, FileSystemLoader
 from classes.tumsa import Tumsa
+from classes.pdfreport import HTML2PDF
+from classes.pdfreport import PDFEmpty
 import json
 import pandas as pd
 from pandas import ExcelFile
-from fpdf import FPDF, HTMLMixin
+
 import os
 from io import StringIO
 from datetime import datetime, timedelta
@@ -17,12 +19,13 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 config = Utils.read_config("package.json")
 env_cfg = {}
-UTC = 6
 
 if os.environ is None or "environment" not in os.environ:
     env_cfg = config["dev"]
 else:
     env_cfg = config[os.environ["environment"]]
+
+UTC = int(env_cfg["UTC"])
 
 if env_cfg["secrets"]:
     db_user = Utils.get_secret("tumsa_dbuser")
@@ -30,40 +33,6 @@ if env_cfg["secrets"]:
 else:
     db_user = env_cfg["dbuser"]
     db_pass = env_cfg["dbpass"]
-
-
-class HTML2PDF(FPDF, HTMLMixin):
-
-    def set_data(self, route=None, vehicle=None, start_date=None, tolerancia=1,total_pages=1):
-        self._route = route
-        self._vehicle = vehicle
-        self._start_date = start_date
-        self._tolerancia = str(tolerancia)+" min."
-        self.total_pages = total_pages
-
-    def header(self):
-        self.set_font('Arial', 'B', 15)
-        # Move to the right
-        # Framed title
-        self.cell(300, 10, 'MANZANILLO, COLIMA', 0, 0, 'C')
-        # Line break
-        self.ln(10)
-        self.cell(300, 10, 'SISTEMA TUCA', 0, 0, 'C')
-        self.ln(10)
-        self.cell(300, 10, 'REPORTE DE CHECADAS', 0, 0, 'C')
-        self.ln(20)
-        self.cell(50, 10, "RUTA "+self._route, 0, 0, 'C')
-        self.cell(155, 10, "No. Economico: "+self._vehicle, 0, 0, 'C')
-        self.cell(100, 10, "Fecha: "+Utils.format_date(Utils.string_to_date(
-            self._start_date, "%Y-%m-%d %H:%M:%S"), "%d/%m/%Y"), 0, 0, 'C')
-        self.ln(20)
-
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Arial', '', 10)
-        # Print centered page number
-        self.cell(0, 10, 'Pagina '+str(self.page_no())+'/'+str(self.total_pages), 0, 0, 'C')
-
 
 
 @app.route('/api/version', methods=['GET'])
@@ -613,6 +582,106 @@ def dayreport():
     return response
 
 
+@app.route('/api/dailyreport2', methods=['POST'])
+def dailyreport2():
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"], UTC=UTC)
+    today = Utils.format_date(Utils.datetime_zone(datetime.now(), "America/Mexico_City"), '%Y-%m-%d')
+
+    route = request.json["route"]
+    token = request.json["token"]
+    viajes = []
+    delay = 1
+    m = MZone()
+    m.set_token(token)
+
+    user = m.current_user()
+    perfil = json.loads(user["phoneHome"])["perfil"]
+    vehicles = [v['id'] for v in m.get_vehicles()]
+    trips = tumsa.get_day_trips(today, route)
+    print(trips)
+    if perfil != "admin":
+        viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
+    else:
+        viajes = trips
+
+    pages = len(viajes)
+    if pages > 0:
+        pdf = HTML2PDF()
+        for viaje in viajes:
+            pdf = tumsa.get_pdf_report(pdf, viaje, token, pages=pages)
+    else:
+        pdf = PDFEmpty()
+        pdf.add_page(orientation='L')
+        pdf.ln(10)
+        pdf.set_font('Arial', '', 25)
+        pdf.cell(300, 50, "NO HAY VIAJES EN ESTE REPORTE", 0, 0, 'C')
+
+
+    pdf.output('reporteDiario.pdf')
+    pdf2 = open('reporteDiario.pdf')
+    response = Response(pdf2.read(), mimetype="application/pdf",
+                        headers={"Content-disposition": "attachment; filename=reporteDiario.pdf"})
+    pdf2.close()
+    os.remove('reporteDiario.pdf')
+    return response
+
+
+
+@app.route('/api/dayreport2', methods=['POST'])
+def dayreport2():
+    pdf = HTML2PDF()
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"], UTC=UTC)
+    day = request.json["date"]
+    route = request.json["route"]
+    viajes = []
+    m = MZone()
+    token = request.json["token"]
+    m.set_token(token)
+    user = m.current_user()
+    perfil = json.loads(user["phoneHome"])["perfil"]
+    vehicles = [v['id'] for v in m.get_vehicles()]
+    trips = tumsa.get_day_trips(day, route=route)
+    if perfil != "admin":
+        viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
+    else:
+        viajes = trips
+
+    pages = len(viajes)
+    if pages > 0:
+        for viaje in viajes:
+            pdf = tumsa.get_pdf_report(pdf, viaje, token, pages=pages)
+    else:
+        pdf = PDFEmpty()
+        pdf.add_page(orientation='L')
+        pdf.ln(10)
+        pdf.set_font('Arial', '', 25)
+        pdf.cell(300, 50, "NO HAY VIAJES EN ESTE REPORTE", 0, 0, 'C')
+
+    pdf.output(day + '.pdf')
+    pdf2 = open(day + '.pdf')
+    response = Response(pdf2.read(), mimetype="application/pdf",
+                        headers={"Content-disposition": "attachment; filename=" + day + '.pdf'})
+    pdf2.close()
+    os.remove(day + '.pdf')
+    return response
+
+
+
+@app.route('/api/tripreport2', methods=['POST'])
+def trip_report2():
+    token = request.json["token"]
+    tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"], UTC=UTC)
+    viaje = tumsa.get_viaje(request.json["viaje"])[0]
+    pdf = tumsa.get_pdf_report(None, viaje, token)
+    pdf.output('out.pdf')
+    pdf2 = open("out.pdf")
+    response = Response(pdf2.read(), mimetype="application/pdf",
+                        headers={"Content-disposition": "attachment; filename=report.pdf"})
+    pdf2.close()
+    os.remove("out.pdf")
+    return response
+
+
 @app.route('/api/tripreport', methods=['POST'])
 def trip_report():
     pdf = HTML2PDF()
@@ -647,7 +716,6 @@ def trip_report():
             head.append(he["description"])
 
         trips = []
-        print(viaje["nid"])
         if "trip" in viaje["trip"]:
             trips = viaje["trip"]["trip"]
         else:
