@@ -385,7 +385,7 @@ class Tumsa(object):
         pdf.cell(col_width_f, 2 * th, "ADNTO", border=1, fill=True, align='C')
         pdf.cell(col_width_f, 2 * th, "RTRSO", border=1, fill=True, align='C')
 
-        pdf.set_font('Arial', '', 7)
+        pdf.set_font('Arial', '', 9)
         pdf.ln(2 * th)
         th = pdf.font_size
 
