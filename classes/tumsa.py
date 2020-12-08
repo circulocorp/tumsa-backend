@@ -336,10 +336,10 @@ class Tumsa(object):
                 calc["estimated_hour"] = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S"),
                                                            "%H:%M")
                 start_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                               + timedelta(hours=self.UTC) - timedelta(minutes=30),
+                                               + timedelta(hours=self.UTC) - timedelta(minutes=15),
                                                "%Y-%m-%dT%H:%M:%S") + "Z"
                 end_date = Utils.format_date(Utils.string_to_date(place["hour"], "%Y-%m-%d %H:%M:%S")
-                                             + timedelta(hours=self.UTC) + timedelta(minutes=30), "%Y-%m-%dT%H:%M:%S") + "Z"
+                                             + timedelta(hours=self.UTC) + timedelta(minutes=15), "%Y-%m-%dT%H:%M:%S") + "Z"
 
                 if "place_Id" in df:
                     row = df[df["place_Id"] == calc["place_Id"]]
