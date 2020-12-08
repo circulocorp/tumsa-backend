@@ -27,7 +27,7 @@ class HTML2PDF(FPDF, HTMLMixin):
         self.cell(155, 10, "No. Economico: "+self._vehicle, 0, 0, 'C')
         self.cell(100, 10, "Fecha: "+Utils.format_date(Utils.string_to_date(
             self._start_date, "%Y-%m-%d %H:%M:%S"), "%d/%m/%Y"), 0, 0, 'C')
-        self.ln(10)
+        self.ln(15)
 
     def footer(self):
         self.set_y(-15)
