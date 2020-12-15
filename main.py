@@ -605,6 +605,7 @@ def dailyreport2():
     else:
         viajes = trips
 
+    viajes = sorted(viajes, key=lambda i: i['priority'])
     pages = len(viajes)
     if pages > 0:
         pdf = HTML2PDF()
@@ -647,6 +648,7 @@ def dayreport2():
     else:
         viajes = trips
 
+    viajes = sorted(viajes, key=lambda i: i['priority'])
     pages = len(viajes)
     if pages > 0:
         for viaje in viajes:
