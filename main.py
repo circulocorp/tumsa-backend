@@ -91,28 +91,29 @@ def create_trips():
     roles = tumsa.get_roles(request.json["ruta"])
     delay = int(request.json["delay"])
     day = request.json["day"]
-    j = 0
     if len(roles) == len(camiones):
+        i = 0
         for camion in camiones:
             vehicle = m.get_vehicles(extra="description eq '" + camion + "'")
             if len(vehicle) > 0:
                 viaje = {}
-                print(roles[j]["priority"])
-                calc = tumsa.calc_trip(route[0], day, roles[j])
+                print(len(roles))
+                print(roles[i]["priority"])
+                viaje["priority"] = int(roles[i]["priority"])
+                calc = tumsa.calc_trip(route[0], day, roles[i])
                 viaje["vehicle"] = json.dumps(vehicle[0])
                 viaje["start_date"] = str(calc["start_date"])
                 viaje["end_date"] = str(calc["end_date"])
                 viaje["trip"] = {"trip": calc["trip"]}
-                viaje["rounds"] = roles[j]["rounds"]
+                viaje["rounds"] = roles[i]["rounds"]
                 viaje["start_point"] = calc["start_point"]
                 viaje["total_time"] = int(calc["total_time"])
-                viaje["priority"] = int(roles[j]["priority"])
                 viaje["end_point"] = calc["end_point"]
                 viaje["route"] = json.dumps(route[0])
                 viaje["comments"] = ""
                 viaje["delay"] = delay
                 tumsa.insert_viaje(viaje)
-                j = j + 1
+                i = i + 1
         return json.dumps({"status": "ok"})
     else:
         return json.dumps({"status": "error"})
