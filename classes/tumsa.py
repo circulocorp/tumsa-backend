@@ -29,7 +29,7 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432", database=self.dbname)
             sql = "INSERT INTO departures(nid,trip,vehicle,created,start_date,end_date,rounds,start_point,end_point," \
-                  "total_time,route,comments,delay,priority) values(uuid_generate_v4(),%s,%s,NOW(),%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                  "total_time,route,comments,delay,priority) values(uuid_generate_v4(),%s,%s,NOW(),%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
             cursor = conn.cursor()
             cursor.execute(sql, (json.dumps(viaje["trip"]), viaje["vehicle"], viaje["start_date"], viaje["end_date"], viaje["rounds"],
                                  viaje["start_point"], viaje["end_point"], viaje["total_time"], viaje["route"],

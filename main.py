@@ -53,7 +53,6 @@ def viajes():
     vehicles = [v['id'] for v in m.get_vehicles()]
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
     trips = tumsa.get_day_trips(day)
-    print(len(trips))
     if perfil != "admin":
         viajes = list(filter(lambda d: d['vehicle']["id"] in vehicles, trips))
     else:
