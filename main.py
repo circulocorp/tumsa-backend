@@ -20,6 +20,8 @@ app.config["DEBUG"] = True
 config = Utils.read_config("package.json")
 env_cfg = {}
 
+os.environ['PYTHONWARNINGS']="ignore:Unverified HTTPS request"
+
 if os.environ is None or "environment" not in os.environ:
     env_cfg = config["dev"]
 else:
@@ -166,6 +168,9 @@ def login():
     res = dict()
     if m.check_token():
         res = m.current_user()
+
+        print(res)
+
         res["token"] = m.get_token()
         res["perfil"] = json.loads(res["phoneHome"])["perfil"]
     return res

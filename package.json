@@ -1,26 +1,26 @@
 {
-	"name": "tumsa-backend",
-	"version": "1.3.3",
-	"dev": {
-		"secrets": false,
+    "name": "tumsa-backend",
+    "version": "2.0.0",
+    "dev": {
+        "secrets": false,
         "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
-		"dbhost": "127.0.0.1",
-		"dbuser": "postgres",
-		"dbpass": "admin1234",
-		"dbname": "tumsadev",
-		"UTC": "5"
-	},
-	"stage": {
-		"secrets": false,
-		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
-		"dbhost": "circulocorp.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
-		"dbname": "tumsa"
-	},
-	"prod": {
-		"secrets": true,
-		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
-		"dbhost": "tumsa.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
-		"dbname": "tumsa",
-		"UTC": "5"
-	}
+        "dbhost": "127.0.0.1",
+        "dbuser": "postgres",
+        "dbpass": "root",
+        "dbname": "tumsa_dev",
+        "UTC": "5"
+    },
+    "stage": {
+        "secrets": false,
+        "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
+        "dbhost": "circulocorp.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
+        "dbname": "tumsa"
+    },
+    "prod": {
+        "secrets": true,
+        "mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
+        "dbhost": "tumsa.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
+        "dbname": "tumsa",
+        "UTC": "5"
+    }
 }
