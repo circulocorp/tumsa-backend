@@ -8,7 +8,7 @@
 		"dbuser": "postgres",
 		"dbpass": "admin1234",
 		"dbname": "tumsadev",
-		"UTC": "6"
+		"UTC": "5"
 	},
 	"stage": {
 		"secrets": false,
