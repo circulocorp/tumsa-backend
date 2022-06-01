@@ -288,7 +288,8 @@ class Tumsa(object):
         if pdf == None:
             pdf = HTML2PDF()
 
-        m = MZone()
+        #m = MZone()
+        m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
         start_date = Utils.format_date(Utils.string_to_date(viaje["start_date"], "%Y-%m-%d %H:%M:%S")
                                        - timedelta(hours=self.UTC) - timedelta(minutes=40), "%Y-%m-%dT%H:%M:%S") + "Z"
         end_date = Utils.format_date(Utils.string_to_date(viaje["end_date"], "%Y-%m-%d %H:%M:%S")
