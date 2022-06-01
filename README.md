@@ -39,13 +39,13 @@ env:
   variables:
       AWS_DEFAULT_REGION: "us-east-1"
       AWS_ACCOUNT_ID: "042469170563"
-      VERSION: 1.3.3
+      VERSION: 1.3.4
 ```
 _package.json_
 ```
 {
   "name": "tumsa",
-  "version": "1.3.3",
+  "version": "1.3.4",
 ```
 Estos numeros de version serán usados al momento del despliegue en AWS.
 
