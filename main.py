@@ -43,8 +43,8 @@ def version():
 
 @app.route('/api/viajes', methods=['POST'])
 def viajes():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     viajes = []
     token = request.json["token"]
     day = request.json["date"]
@@ -62,8 +62,8 @@ def viajes():
 
 @app.route('/api/vehicles', methods=['POST'])
 def vehicles():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.json["token"]
     m.set_token(token)
     search = request.json["search"]
@@ -74,8 +74,8 @@ def vehicles():
 
 @app.route('/api/lastposition', methods=['POST'])
 def last_position():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.json["token"]
     m.set_token(token)
     vehicle = request.json["vehicle"]
@@ -85,8 +85,8 @@ def last_position():
 
 @app.route('/api/createtrips', methods=['POST'])
 def create_trips():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
     token = request.json["token"]
     m.set_token(token)
@@ -125,8 +125,8 @@ def create_trips():
 
 @app.route('/api/allvehicles', methods=['POST'])
 def allvehicles():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.json["token"]
     m.set_token(token)
     res = m.get_vehicles()
@@ -135,8 +135,8 @@ def allvehicles():
 
 @app.route('/api/places', methods=['POST'])
 def places():
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.form
     print(token)
     m.set_token(token)
@@ -147,7 +147,7 @@ def places():
 #deprecated
 @app.route('/api/users', methods=['POST'])
 def create_user(user):
-    m = MZone(username, password, env_cfg["mzone_secret"], "mz-a3tek")
+    m = MZone(config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
     #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
     user["securityGroupIds"] = [""]
     user["roleIds"] = [""]
@@ -217,8 +217,8 @@ def dailyreport():
     route = request.json["route"]
     token = request.json["token"]
     viajes = []
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
 
     delay = 1
     pages = 1
@@ -413,8 +413,8 @@ def dayreport():
     day = request.json["date"]
     route = request.json["route"]
     viajes = []
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.json["token"]
     m.set_token(token)
     user = m.current_user()
@@ -603,8 +603,8 @@ def dailyreport2():
     token = request.json["token"]
     viajes = []
     delay = 1
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     m.set_token(token)
 
     user = m.current_user()
@@ -648,8 +648,8 @@ def dayreport2():
     day = request.json["date"]
     route = request.json["route"]
     viajes = []
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+    m = MZone()
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
     token = request.json["token"]
     m.set_token(token)
     user = m.current_user()
@@ -702,8 +702,8 @@ def trip_report2():
 def trip_report():
     pdf = HTML2PDF()
     try:
-        #m = MZone()
-        m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
+        m = MZone()
+        #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/")
         token = request.json["token"]
         tumsa = Tumsa(dbhost=env_cfg["dbhost"], dbuser=db_user, dbpass=db_pass, dbname=env_cfg["dbname"])
         viaje = tumsa.get_viaje(request.json["viaje"])[0]
