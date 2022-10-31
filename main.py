@@ -147,8 +147,8 @@ def places():
 #deprecated
 @app.route('/api/users', methods=['POST'])
 def create_user(user):
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
+    m = MZone(username, password, env_cfg["mzone_secret"], "mz-a3tek")
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
     user["securityGroupIds"] = [""]
     user["roleIds"] = [""]
     m.gettoken()
@@ -181,8 +181,8 @@ def login():
 #deprecated
 @app.route('/api/users/<path:id>', methods=['PATCH'])
 def update_user(user):
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
+    m = MZone(config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", config["dev"]["mzone_user"], config["dev"]["mzone_pass"], config["dev"]["mzone_secret"], "mz-a3tek")
     m.gettoken()
     res = m.update_user(user)
     return json.dumps(res)
