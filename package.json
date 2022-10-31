@@ -8,6 +8,7 @@
 		"dbuser": "postgres",
 		"dbpass": "admin1234",
 		"dbname": "tumsadev",
+		"update": "311022",
 		"UTC": "6"
 	},
 	"stage": {
@@ -21,6 +22,8 @@
 		"mzone_secret": "WJ4wUJo79qFsMm4T9Rj7dKw4",
 		"dbhost": "tumsa.c1rv3iuqyhko.us-east-1.rds.amazonaws.com",
 		"dbname": "tumsa",
+		"update": "311022",
 		"UTC": "6"
 	}
 }
+
