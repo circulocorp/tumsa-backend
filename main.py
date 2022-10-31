@@ -168,8 +168,8 @@ def delete_viaje():
 def login():
     username = request.form['username']
     password = request.form['password']
-    #m = MZone()
-    m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", username, password, env_cfg["mzone_secret"], "mz-a3tek")
+    m = MZone(username, password, env_cfg["mzone_secret"], "mz-a3tek")
+    #m = MZone(user=account["user"], password=account["password"], secret=mzone_secret, client="mz-a3tek", url="https://live.mzoneweb.net/mzone62.api/", username, password, env_cfg["mzone_secret"], "mz-a3tek")
     m.gettoken()
     res = dict()
     if m.check_token():
