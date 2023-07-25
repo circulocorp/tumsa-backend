@@ -77,7 +77,7 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures and vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
+            sql = "select * from departures where vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
             cursor = conn.cursor()
             cursor.execute(sql)
             data = cursor.fetchall()
