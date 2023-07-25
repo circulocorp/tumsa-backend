@@ -46,7 +46,7 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where nid='"+id+"'"
+            sql = "select * from departures where nid='"+id+"' and vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
             cursor = conn.cursor()
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -77,7 +77,7 @@ class Tumsa(object):
         try:
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures"
+            sql = "select * from departures and vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
             cursor = conn.cursor()
             cursor.execute(sql)
             data = cursor.fetchall()
@@ -111,7 +111,7 @@ class Tumsa(object):
             end = base+" 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and start_date<=%s "
+            sql = "select * from departures where start_date>=%s and start_date<=%s and vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
 
             if route:
                 sql = sql+" and route->>'nid' = '"+route+"'"
@@ -148,7 +148,7 @@ class Tumsa(object):
             end = day + " 23:59:59"
             conn = pg.connect(host=self.dbhost, user=self.dbuser, password=self.dbpass, port="5432",
                               database=self.dbname)
-            sql = "select * from departures where start_date>=%s and start_date<=%s "
+            sql = "select * from departures where start_date>=%s and start_date<=%s and vehicle ->> 'unit_Description' in (select unitdescription from membersunits where edo = 'A'"
             print(sql)
             print(start)
             if route:
